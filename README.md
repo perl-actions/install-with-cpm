@@ -14,4 +14,8 @@ none
 
 ## Example usage
 
-uses: perl-actions/install-cpm@v1
+```
+uses: perl-actions/install-cpm@v1.0
+run: |
+   sudo cpm install -g Module::To::Install
+```
