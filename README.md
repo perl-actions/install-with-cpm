@@ -1,3 +1,5 @@
+[![Actions Status](https://github.com/perl-actions/install-cpm/workflows/check/badge.svg)](https://github.com/perl-actions/install-cpm/actions)
+
 # install-cpm
 
 GitHub action to install App::cpm
