@@ -1,0 +1,11 @@
+on: [push]
+
+jobs:
+  testing:
+    runs-on: ubuntu-latest
+    name: Testing GitHub action
+    steps:
+    - name: install-cpm
+      uses: perl-actions/install-cpm@master
+    - name: which cpm
+      run: which cpm
