@@ -13,7 +13,7 @@ async function action() {
   const cpmScript = await tc.downloadTool('https://git.io/cpm');
 
   core.setOutput("cpm", cpmScript);
-  await exec.exec( 'sudo', 'perl', [ cpmScript, 'install', '-g', 'App::cpm'] );
+  await exec.exec( 'sudo', [ 'perl', cpmScript, '-', 'install', '-g', 'App::cpm'] );
 
   //core.addPath(nodeDirectory);
 
