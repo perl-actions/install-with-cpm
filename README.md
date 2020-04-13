@@ -1,24 +1,17 @@
 # install-cpm
+
 GitHub action to install App::cpm
 
-# Hello world javascript action
-
-This action prints "Hello World" or "Hello" + the name of a person to greet to the log.
+This action installs 'cpm' as root so you can then use it in your workflow.
 
 ## Inputs
 
-### `who-to-greet`
-
-**Required** The name of the person to greet. Default `"World"`.
+none
 
 ## Outputs
 
-### `time`
-
-The time we greeted you.
+none
 
 ## Example usage
 
-uses: actions/hello-world-javascript-action@v1
-with:
-  who-to-greet: 'Mona the Octocat
+uses: perl-actions/install-cpm@v1
