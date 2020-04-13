@@ -1,5 +1,7 @@
 name: 'install cpm'
 description: 'install App::cpm'
+icon: arrow-right
+color: blue
 runs:
   using: 'node12'
   main: 'index.js'
