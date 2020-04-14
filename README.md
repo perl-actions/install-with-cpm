@@ -8,7 +8,45 @@ This action installs 'cpm' as root so you can then use it in your workflow.
 
 ## Inputs
 
-none
+### `install`
+
+List of one or more modules, separated by a newline `\n` character.
+
+### `cpanfile`
+
+Install modules from a cpanfile.
+
+### `tests`
+
+Boolean variable used to disable unit tests during installation
+Possible values: true | false [default: false]
+
+### `global`
+
+Boolean variable used to install or not modules to @INC instead of local.
+This variable controls the `-g` option from cpm and is enabled by default.
+
+Possible values: true | false [default: true]
+
+### `args`
+
+Extra arguments to pass to the cplay command line.
+
+### `sudo`
+
+Run commands as sudo: true | false [default: true]
+
+### `perl`
+
+Which perl path to use. Default to use `perl` from the current `PATH`.
+
+### `path`
+
+Where to install `cpm`. Default value is `$Config{installsitescript}/cpm`.
+
+### `version`
+
+Which version/tag of `cpm` to install. Default is 'master' to use the latest version.
 
 ## Outputs
 
@@ -16,8 +54,80 @@ none
 
 ## Example usage
 
+### Install cpm
+
+Just install cpm without running any install commands.
+You can then use cpm yourself in order commands.
+
+```yaml
+- name: install cpm
+  uses: perl-actions/install-cpm@v1.1
+# then you can use it
+- run: 'sudo cpm install -g Simple::Accessor'
 ```
-uses: perl-actions/install-cpm@v1.0
-run: |
-   sudo cpm install -g Module::To::Install
+
+### Install a single module
+
+```yaml
+- name: install cpm and one module
+  uses: perl-actions/install-cpm@v1.1
+  with:
+    install: 'Simple::Accessor'
+```
+
+### Install multiple modules
+
+List modules seperated by a newline character `\n`
+
+```yaml
+- name: install cpm and multiple modules
+  uses: perl-actions/install-cpm@v1.1
+  with:
+      install: |
+        Simple::Accessor
+        Test::Parallel
+```
+
+### Install modules from a cpanfile
+
+```yaml
+- name: install cpm and files from cpanfile
+  uses: perl-actions/install-cpm@v1.1
+  with:
+    cpanfile: 'your-cpanfile'
+```
+
+### Install a module and enable tests
+
+Install modules with tests.
+
+```yaml
+- name: install cpm and files from cpanfile
+  uses: perl-actions/install-cpm@v1.1
+  with:
+      install: 'Simple::Accessor'
+      tests: true
+```
+
+### Install module(s) to local directory
+
+Disable the `-g` flag.
+
+```yaml
+- name: install cpm and files from cpanfile
+  uses: perl-actions/install-cpm@v1.1
+  with:
+      install: 'Simple::Accessor'
+      global: false
+      sudo: false
+```
+
+### Use some custom args to install
+
+```yaml
+- name: 'install cpm + cpanfile with args'
+  uses: perl-actions/install-cpm@v1.1
+  with:
+      cpanfile: 'your-cpanfile'
+      args: '--with-recommends --with-suggests'
 ```

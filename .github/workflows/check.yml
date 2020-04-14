@@ -3,11 +3,137 @@ name: check
 on: [push]
 
 jobs:
-  testing:
+
+# note using ./ is a trick to be sure to use @master
+#   otherwise it can be delayed...
+# we cannot use
+#
+#     perl-actions/install-cpm@master
+#     perl-actions/install-cpm@${{ github.sha }}
+#
+# https://github.community/t5/GitHub-Actions/Usage-of-expressions-and-contexts-in-uses-clause/m-p/39502#M3835
+
+  cpm:
     runs-on: ubuntu-latest
-    name: Testing GitHub action
+    name: 'install cpm'
     steps:
-    - name: install-cpm
-      uses: perl-actions/install-cpm@master
-    - name: which cpm
-      run: which cpm
+      - uses: actions/checkout@v2
+      - name: uses install-cpm
+        uses: ./
+      - name: which cpm
+        run: |
+          which cpm
+          cpm --version
+
+  cpm_version:
+    runs-on: ubuntu-latest
+    name: 'install cpm 0.990'
+    steps:
+      - uses: actions/checkout@v2
+      - name: uses install-cpm
+        uses: ./
+        with:
+          version: '0.990'
+      - name: cpm --version
+        run: |
+          cpm --version
+
+### Install a single module
+
+  one_module:
+    runs-on: ubuntu-latest
+    name: 'cpm and a module'
+    steps:
+      - uses: actions/checkout@v2
+      - name: uses install-cpm
+        uses: ./
+        with:
+          install: 'Simple::Accessor'
+
+### Install multiple modules
+
+  multiple_modules:
+    runs-on: ubuntu-latest
+    name: 'cpm & modules'
+    steps:
+      - uses: actions/checkout@v2
+      - name: uses install-cpm
+        uses: ./
+        with:
+          install: |
+            Simple::Accessor
+            Test::Parallel
+
+### Install modules from a cpanfile
+
+  cpanfile_root:
+    runs-on: ubuntu-latest
+    name: 'cpanfile as root'
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Create a cpanfile'
+        run: |
+          echo "requires 'A1z::Html';" > cpanfile.test
+      - name: uses install-cpm
+        uses: ./
+        with:
+          cpanfile: 'cpanfile.test'
+
+  cpanfile_nonroot:
+    runs-on: ubuntu-latest
+    name: 'cpanfile non root'
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Create a cpanfile'
+        run: |
+          echo "requires 'A1z::Html';" > cpanfile.test
+      - name: uses install-cpm
+        uses: ./
+        with:
+          cpanfile: 'cpanfile.test'
+          sudo: false
+          global: false
+          path: 'cpm'
+
+### Install a module and enable tests
+
+  with_tests:
+    runs-on: ubuntu-latest
+    name: 'install with tests'
+    steps:
+      - uses: actions/checkout@v2
+      - name: uses install-cpm
+        uses: ./
+        with:
+          install: 'Simple::Accessor'
+          tests: true
+
+### Install module(s) to local directory
+
+  local_install:
+    runs-on: ubuntu-latest
+    name: 'local installation non root'
+    steps:
+      - uses: actions/checkout@v2
+      - name: uses install-cpm
+        uses: ./
+        with:
+          install: 'Simple::Accessor'
+          global: false
+          sudo: false
+
+### Use some custom args to install
+
+  with_args:
+    runs-on: ubuntu-latest
+    name: 'cpanfile with args'
+    steps:
+      - uses: actions/checkout@v2
+      - name: 'Create a cpanfile'
+        run: |
+          echo "requires 'A1z::Html';" > cpanfile.test
+      - name: uses install-cpm
+        uses: ./
+        with:
+          cpanfile: 'cpanfile.test'
+          args: '--with-recommends --with-suggests'
