@@ -6,6 +6,24 @@ GitHub action to install App::cpm
 
 This action installs 'cpm' as root so you can then use it in your workflow.
 
+```yaml
+- name: install cpm and multiple modules
+  uses: perl-actions/install-cpm@v1.1
+  with:
+      install: |
+        Simple::Accessor
+        Test::Parallel
+# or you can use a cpanfile
+#     cpanfile: 'your-cpanfile'
+# default values you can customize
+#     sudo: true
+#     version: master
+# where to install cpm
+#     path: "$Config{installsitescript}/cpm"
+# which perl binary to use
+#     perl: 'perl'
+```
+
 ## Inputs
 
 ### `install`
@@ -64,6 +82,18 @@ You can then use cpm yourself in order commands.
   uses: perl-actions/install-cpm@v1.1
 # then you can use it
 - run: 'sudo cpm install -g Simple::Accessor'
+```
+
+### Install an older version of cpm
+
+Just install cpm without running any install commands.
+You can then use cpm yourself in order commands.
+
+```yaml
+- name: install cpm
+  uses: perl-actions/install-cpm@v1.1
+  with:
+    version: '0.990'
 ```
 
 ### Install a single module
