@@ -38,7 +38,7 @@ async function install_cpm(install_to) {
   console.log(`install_to ${install_to}`);
 
   // need to run it as sudo
-  await exec.exec( 'sudo', [ PERL, '-MFile::Copy=cp', '-e', `cp("${cpmScript}", "${install_to}"); chmod(0755, "${install_to}")` ] );
+  await do_exec( [ PERL, '-MFile::Copy=cp', '-e', `cp("${cpmScript}", "${install_to}"); chmod(0755, "${install_to}")` ] );
   //await io.cp(cpmScript, install_to); /* need to run with sudo */
   //await ioUtil.chmod(install_to, '0755')
 
