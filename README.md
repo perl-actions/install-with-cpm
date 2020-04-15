@@ -8,7 +8,7 @@ This action installs 'cpm' as root so you can then use it in your workflow.
 
 ```yaml
 - name: install cpm and multiple modules
-  uses: perl-actions/install-cpm@v1.1
+  uses: perl-actions/install-cpm@v1.2
   with:
       install: |
         Simple::Accessor
@@ -115,7 +115,7 @@ You can then use cpm yourself in order commands.
 
 ```yaml
 - name: install cpm
-  uses: perl-actions/install-cpm@v1.1
+  uses: perl-actions/install-cpm@v1.2
 # then you can use it
 - run: 'sudo cpm install -g Simple::Accessor'
 ```
@@ -127,7 +127,7 @@ You can then use cpm yourself in order commands.
 
 ```yaml
 - name: install cpm
-  uses: perl-actions/install-cpm@v1.1
+  uses: perl-actions/install-cpm@v1.2
   with:
     version: '0.990'
 ```
@@ -136,7 +136,7 @@ You can then use cpm yourself in order commands.
 
 ```yaml
 - name: install cpm and one module
-  uses: perl-actions/install-cpm@v1.1
+  uses: perl-actions/install-cpm@v1.2
   with:
     install: 'Simple::Accessor'
 ```
@@ -147,7 +147,7 @@ List modules seperated by a newline character `\n`
 
 ```yaml
 - name: install cpm and multiple modules
-  uses: perl-actions/install-cpm@v1.1
+  uses: perl-actions/install-cpm@v1.2
   with:
       install: |
         Simple::Accessor
@@ -158,7 +158,7 @@ List modules seperated by a newline character `\n`
 
 ```yaml
 - name: install cpm and files from cpanfile
-  uses: perl-actions/install-cpm@v1.1
+  uses: perl-actions/install-cpm@v1.2
   with:
     cpanfile: 'your-cpanfile'
 ```
@@ -169,7 +169,7 @@ Install modules with tests.
 
 ```yaml
 - name: install cpm and files from cpanfile
-  uses: perl-actions/install-cpm@v1.1
+  uses: perl-actions/install-cpm@v1.2
   with:
       install: 'Simple::Accessor'
       tests: true
@@ -181,7 +181,7 @@ Disable the `-g` flag.
 
 ```yaml
 - name: install cpm and files from cpanfile
-  uses: perl-actions/install-cpm@v1.1
+  uses: perl-actions/install-cpm@v1.2
   with:
       install: 'Simple::Accessor'
       global: false
@@ -192,7 +192,7 @@ Disable the `-g` flag.
 
 ```yaml
 - name: 'install cpm + cpanfile with args'
-  uses: perl-actions/install-cpm@v1.1
+  uses: perl-actions/install-cpm@v1.2
   with:
       cpanfile: 'your-cpanfile'
       args: '--with-recommends --with-suggests'
