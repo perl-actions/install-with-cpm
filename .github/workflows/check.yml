@@ -108,18 +108,30 @@ jobs:
           install: 'Simple::Accessor'
           tests: true
 
-### Install module(s) to local directory
+### check perl-tester
 
-  local_install:
+  perl_tester:
     runs-on: ubuntu-latest
-    name: 'local installation non root'
+    name: 'perl v${{ matrix.perl-version }}'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        perl-version:
+          - '5.30'
+          - '5.28'
+          - '5.26'
+
+    container:
+      image: perldocker/perl-tester:${{ matrix.perl-version }}
+
     steps:
       - uses: actions/checkout@v2
       - name: uses install-cpm
         uses: ./
         with:
           install: 'Simple::Accessor'
-          global: false
+          global: true
           sudo: false
 
 ### Use some custom args to install
