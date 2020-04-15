@@ -24,6 +24,42 @@ This action installs 'cpm' as root so you can then use it in your workflow.
 #     perl: 'perl'
 ```
 
+## Using it in a GitHub workflow
+
+Here is a sample integration using install-cpm action
+to test your Perl Module using multiple Perl versions.
+
+```yaml
+# .github/workflows/linux.yml
+jobs:
+  perl_tester:
+    runs-on: ubuntu-latest
+    name: 'perl v${{ matrix.perl-version }}'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        perl-version:
+          - '5.30'
+          - '5.28'
+          - '5.26'
+        # ...
+        # - '5.8'
+
+    container:
+      image: perldocker/perl-tester:${{ matrix.perl-version }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: uses install-cpm
+        uses: perl-actions/install-cpm@v1.2
+        with:
+          cpanfile: 'cpanfile'
+          sudo: false
+      - run: perl Makefile.PL
+      - run: make test
+```
+
 ## Inputs
 
 ### `install`
