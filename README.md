@@ -204,7 +204,7 @@ Disable the `-g` flag.
 
 Here is a sample job using cpm to install modules on windows.
 
-```
+```yaml
   windows:
     runs-on: windows-latest
     name: "windows"
