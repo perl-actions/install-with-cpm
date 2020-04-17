@@ -199,3 +199,34 @@ Disable the `-g` flag.
     cpanfile: "your-cpanfile"
     args: "--with-recommends --with-suggests"
 ```
+
+### Using install-with-cpm on Windows / win32
+
+Here is a sample job using cpm to install modules on windows.
+
+```
+  windows:
+    runs-on: windows-latest
+    name: "windows"
+
+    steps:
+      - name: Set up Perl
+        run: |
+          choco install strawberryperl
+          echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
+
+      - name: perl -V
+        run: perl -V
+
+      - uses: actions/checkout@v2
+      - name: "install-with-cpm"
+
+        uses: perl-actions/install-with-cpm@v1.2
+        with:
+          install: |
+            abbreviation
+            ACH
+      # checking that both modules are installed
+      - run: perl -Mabbreviation -e1
+      - run: perl -MACH -e1
+```

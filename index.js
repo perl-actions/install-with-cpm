@@ -6,6 +6,7 @@ const io = require("@actions/io");
 
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 
 var PERL;
 
@@ -19,7 +20,8 @@ async function install_cpm_location() {
     },
   };
 
-  const p = core.getInput("path");
+  var p = core.getInput("path");
+  p.replace("\\", "\\\\");
   await exec.exec(PERL, ["-MConfig", "-e", `print "${p}"`], options);
 
   return path.resolve(out);
@@ -37,13 +39,19 @@ async function install_cpm(install_to) {
 
   console.log(`install_to ${install_to}`);
 
-  // need to run it as sudo
-  await do_exec([
-    PERL,
-    "-MFile::Copy=cp",
-    "-e",
-    `cp("${cpmScript}", "${install_to}"); chmod(0755, "${install_to}")`,
-  ]);
+  const platform = os.platform();
+  //console.log(`OS: :${platform}:`);
+
+  if (platform == "win32") {
+    await io.cp(cpmScript, install_to);
+  } else {
+    await do_exec([
+      PERL,
+      "-MFile::Copy=cp",
+      "-e",
+      `cp("${cpmScript}", "${install_to}"); chmod(0755, "${install_to}")`,
+    ]);
+  }
   //await io.cp(cpmScript, install_to); /* need to run with sudo */
   //await ioUtil.chmod(install_to, '0755')
 
@@ -72,7 +80,8 @@ function is_false(b) {
 
 async function do_exec(cmd) {
   const sudo = is_true(core.getInput("sudo"));
-  const bin = sudo ? "sudo" : cmd.shift();
+  const platform = os.platform();
+  const bin = sudo && platform != "win32" ? "sudo" : cmd.shift();
 
   console.log(`do_exec: ${bin}`);
 

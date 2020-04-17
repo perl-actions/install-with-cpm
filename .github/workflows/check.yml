@@ -129,7 +129,7 @@ jobs:
         perl-version:
           - "5.30"
           - "5.28"
-          - "5.26"
+          # ...
 
     container:
       image: perldocker/perl-tester:${{ matrix.perl-version }}
@@ -139,9 +139,14 @@ jobs:
       - name: uses install-with-cpm
         uses: ./
         with:
-          install: "Simple::Accessor"
           global: true
           sudo: false
+          install: |
+            abbreviation
+            ACH
+      # checking that both modules are installed
+      - run: perl -Mabbreviation -e1
+      - run: perl -MACH -e1
 
   ### ------------------------------------------------
   ### Use some custom args to install
@@ -162,24 +167,18 @@ jobs:
           args: "--with-recommends --with-suggests"
 
   ## ------------------------------------------------
-  ## testing with Perl from perl-tester
+  ## testing with windows
   ## ------------------------------------------------
-  perl:
-    runs-on: ubuntu-latest
-    name: "perl v${{ matrix.perl-version }}"
-
-    strategy:
-      fail-fast: false
-      matrix:
-        perl-version:
-          - "5.30"
-          - "5.28"
-          # ...
-
-    container:
-      image: perldocker/perl-tester:${{ matrix.perl-version }}
+  windows:
+    runs-on: windows-latest
+    name: "windows"
 
     steps:
+      - name: Set up Perl
+        run: |
+          choco install strawberryperl
+          echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
+
       - name: perl -V
         run: perl -V
 
@@ -188,7 +187,6 @@ jobs:
 
         uses: ./
         with:
-          sudo: false
           install: |
             abbreviation
             ACH
