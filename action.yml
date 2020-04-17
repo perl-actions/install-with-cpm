@@ -1,5 +1,5 @@
-name: "install cpm"
-description: "install App::cpm"
+name: "install with cpm"
+description: "install Perl Modules using App::cpm"
 branding:
   icon: "arrow-right"
   color: "blue"
