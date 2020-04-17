@@ -7,8 +7,8 @@ jobs:
   #   otherwise it can be delayed...
   # we cannot use
   #
-  #     perl-actions/install-cpm@master
-  #     perl-actions/install-cpm@${{ github.sha }}
+  #     perl-actions/install-with-cpm@master
+  #     perl-actions/install-with-cpm@${{ github.sha }}
   #
   # https://github.community/t5/GitHub-Actions/Usage-of-expressions-and-contexts-in-uses-clause/m-p/39502#M3835
 
@@ -17,7 +17,7 @@ jobs:
     name: "install cpm"
     steps:
       - uses: actions/checkout@v2
-      - name: uses install-cpm
+      - name: uses install-with-cpm
         uses: ./
       - name: which cpm
         run: |
@@ -29,7 +29,7 @@ jobs:
     name: "install cpm 0.990"
     steps:
       - uses: actions/checkout@v2
-      - name: uses install-cpm
+      - name: uses install-with-cpm
         uses: ./
         with:
           version: "0.990"
@@ -44,7 +44,7 @@ jobs:
     name: "cpm and a module"
     steps:
       - uses: actions/checkout@v2
-      - name: uses install-cpm
+      - name: uses install-with-cpm
         uses: ./
         with:
           install: "Simple::Accessor"
@@ -56,7 +56,7 @@ jobs:
     name: "cpm & modules"
     steps:
       - uses: actions/checkout@v2
-      - name: uses install-cpm
+      - name: uses install-with-cpm
         uses: ./
         with:
           install: |
@@ -73,7 +73,7 @@ jobs:
       - name: "Create a cpanfile"
         run: |
           echo "requires 'A1z::Html';" > cpanfile.test
-      - name: uses install-cpm
+      - name: uses install-with-cpm
         uses: ./
         with:
           cpanfile: "cpanfile.test"
@@ -86,7 +86,7 @@ jobs:
       - name: "Create a cpanfile"
         run: |
           echo "requires 'A1z::Html';" > cpanfile.test
-      - name: uses install-cpm
+      - name: uses install-with-cpm
         uses: ./
         with:
           cpanfile: "cpanfile.test"
@@ -101,7 +101,7 @@ jobs:
     name: "install with tests"
     steps:
       - uses: actions/checkout@v2
-      - name: uses install-cpm
+      - name: uses install-with-cpm
         uses: ./
         with:
           install: "Simple::Accessor"
@@ -126,7 +126,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: uses install-cpm
+      - name: uses install-with-cpm
         uses: ./
         with:
           install: "Simple::Accessor"
@@ -143,7 +143,7 @@ jobs:
       - name: "Create a cpanfile"
         run: |
           echo "requires 'A1z::Html';" > cpanfile.test
-      - name: uses install-cpm
+      - name: uses install-with-cpm
         uses: ./
         with:
           cpanfile: "cpanfile.test"

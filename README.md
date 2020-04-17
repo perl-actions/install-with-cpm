@@ -1,6 +1,6 @@
-[![Actions Status](https://github.com/perl-actions/install-cpm/workflows/check/badge.svg)](https://github.com/perl-actions/install-cpm/actions)
+[![Actions Status](https://github.com/perl-actions/install-with-cpm/workflows/check/badge.svg)](https://github.com/perl-actions/install-with-cpm/actions)
 
-# install-cpm
+# install-with-cpm
 
 GitHub action to install App::cpm
 
@@ -8,7 +8,7 @@ This action installs 'cpm' as root so you can then use it in your workflow.
 
 ```yaml
 - name: install cpm and multiple modules
-  uses: perl-actions/install-cpm@v1.2
+  uses: perl-actions/install-with-cpm@v1.2
   with:
     install: |
       Simple::Accessor
@@ -27,7 +27,7 @@ This action installs 'cpm' as root so you can then use it in your workflow.
 
 ## Using it in a GitHub workflow
 
-Here is a sample integration using install-cpm action
+Here is a sample integration using install-with-cpm action
 to test your Perl Module using multiple Perl versions.
 
 ```yaml
@@ -52,8 +52,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      - name: uses install-cpm
-        uses: perl-actions/install-cpm@v1.2
+      - name: uses install-with-cpm
+        uses: perl-actions/install-with-cpm@v1.2
         with:
           cpanfile: "cpanfile"
           sudo: false
@@ -116,7 +116,7 @@ You can then use cpm yourself in order commands.
 
 ```yaml
 - name: install cpm
-  uses: perl-actions/install-cpm@v1.2
+  uses: perl-actions/install-with-cpm@v1.2
 # then you can use it
 - run: "sudo cpm install -g Simple::Accessor"
 ```
@@ -128,7 +128,7 @@ You can then use cpm yourself in order commands.
 
 ```yaml
 - name: install cpm
-  uses: perl-actions/install-cpm@v1.2
+  uses: perl-actions/install-with-cpm@v1.2
   with:
     version: "0.990"
 ```
@@ -137,7 +137,7 @@ You can then use cpm yourself in order commands.
 
 ```yaml
 - name: install cpm and one module
-  uses: perl-actions/install-cpm@v1.2
+  uses: perl-actions/install-with-cpm@v1.2
   with:
     install: "Simple::Accessor"
 ```
@@ -148,7 +148,7 @@ List modules seperated by a newline character `\n`
 
 ```yaml
 - name: install cpm and multiple modules
-  uses: perl-actions/install-cpm@v1.2
+  uses: perl-actions/install-with-cpm@v1.2
   with:
     install: |
       Simple::Accessor
@@ -159,7 +159,7 @@ List modules seperated by a newline character `\n`
 
 ```yaml
 - name: install cpm and files from cpanfile
-  uses: perl-actions/install-cpm@v1.2
+  uses: perl-actions/install-with-cpm@v1.2
   with:
     cpanfile: "your-cpanfile"
 ```
@@ -170,7 +170,7 @@ Install modules with tests.
 
 ```yaml
 - name: install cpm and files from cpanfile
-  uses: perl-actions/install-cpm@v1.2
+  uses: perl-actions/install-with-cpm@v1.2
   with:
     install: "Simple::Accessor"
     tests: true
@@ -182,7 +182,7 @@ Disable the `-g` flag.
 
 ```yaml
 - name: install cpm and files from cpanfile
-  uses: perl-actions/install-cpm@v1.2
+  uses: perl-actions/install-with-cpm@v1.2
   with:
     install: "Simple::Accessor"
     global: false
@@ -193,7 +193,7 @@ Disable the `-g` flag.
 
 ```yaml
 - name: "install cpm + cpanfile with args"
-  uses: perl-actions/install-cpm@v1.2
+  uses: perl-actions/install-with-cpm@v1.2
   with:
     cpanfile: "your-cpanfile"
     args: "--with-recommends --with-suggests"

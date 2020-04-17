@@ -1,5 +1,5 @@
 {
-  "name": "install-cpm",
+  "name": "install-with-cpm",
   "version": "1.0.0",
   "description": "GitHub action to install App::cpm",
   "main": "index.js",
@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/perl-actions/install-cpm.git"
+    "url": "git+https://github.com/perl-actions/install-with-cpm.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/perl-actions/install-cpm/issues"
+    "url": "https://github.com/perl-actions/install-with-cpm/issues"
   },
-  "homepage": "https://github.com/perl-actions/install-cpm#readme",
+  "homepage": "https://github.com/perl-actions/install-with-cpm#readme",
   "dependencies": {
     "@actions/core": "^1.2.3",
     "@actions/exec": "^1.0.3",
