@@ -50,6 +50,7 @@ jobs:
         uses: ./
         with:
           install: "Simple::Accessor"
+      - run: perl -MSimple::Accessor -e1
 
   ### ------------------------------------------------
   ### Install multiple modules
@@ -65,7 +66,9 @@ jobs:
         with:
           install: |
             Simple::Accessor
-            Test::Parallel
+            abbreviation
+      - run: perl -MSimple::Accessor -e1
+      - run: perl -Mabbreviation -e1
 
   ### ------------------------------------------------
   ### Install modules from a cpanfile
@@ -78,11 +81,12 @@ jobs:
       - uses: actions/checkout@v2
       - name: "Create a cpanfile"
         run: |
-          echo "requires 'A1z::Html';" > cpanfile.test
+          echo "requires 'Simple::Accessor';" > cpanfile.test
       - name: uses install-with-cpm
         uses: ./
         with:
           cpanfile: "cpanfile.test"
+      - run: perl -MSimple::Accessor -e1
 
   cpanfile_nonroot:
     runs-on: ubuntu-latest
@@ -91,7 +95,7 @@ jobs:
       - uses: actions/checkout@v2
       - name: "Create a cpanfile"
         run: |
-          echo "requires 'A1z::Html';" > cpanfile.test
+          echo "requires 'Simple::Accessor';" > cpanfile.test
       - name: uses install-with-cpm
         uses: ./
         with:
@@ -99,6 +103,8 @@ jobs:
           sudo: false
           global: false
           path: "cpm"
+      - run: sudo perl cpm install -g local::lib
+      - run: perl -Mlocal::lib=--no-create,local -MSimple::Accessor -e1
 
   ### ------------------------------------------------
   ### Install a module and enable tests
@@ -159,12 +165,13 @@ jobs:
       - uses: actions/checkout@v2
       - name: "Create a cpanfile"
         run: |
-          echo "requires 'A1z::Html';" > cpanfile.test
+          echo "requires 'Simple::Accessor';" > cpanfile.test
       - name: uses install-with-cpm
         uses: ./
         with:
           cpanfile: "cpanfile.test"
           args: "--with-recommends --with-suggests"
+      - run: perl -MSimple::Accessor -e1
 
   ## ------------------------------------------------
   ## testing with windows

@@ -86,7 +86,7 @@ Possible values: true | false [default: true]
 
 ### `args`
 
-Extra arguments to pass to the cplay command line.
+Extra arguments to pass to the cpm command line.
 
 ### `sudo`
 
@@ -205,28 +205,28 @@ Disable the `-g` flag.
 Here is a sample job using cpm to install modules on windows.
 
 ```yaml
-  windows:
-    runs-on: windows-latest
-    name: "windows"
+windows:
+  runs-on: windows-latest
+  name: "windows"
 
-    steps:
-      - name: Set up Perl
-        run: |
-          choco install strawberryperl
-          echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
+  steps:
+    - name: Set up Perl
+      run: |
+        choco install strawberryperl
+        echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
 
-      - name: perl -V
-        run: perl -V
+    - name: perl -V
+      run: perl -V
 
-      - uses: actions/checkout@v2
-      - name: "install-with-cpm"
+    - uses: actions/checkout@v2
+    - name: "install-with-cpm"
 
-        uses: perl-actions/install-with-cpm@v1.3
-        with:
-          install: |
-            abbreviation
-            ACH
-      # checking that both modules are installed
-      - run: perl -Mabbreviation -e1
-      - run: perl -MACH -e1
+      uses: perl-actions/install-with-cpm@v1.3
+      with:
+        install: |
+          abbreviation
+          ACH
+    # checking that both modules are installed
+    - run: perl -Mabbreviation -e1
+    - run: perl -MACH -e1
 ```
