@@ -25,10 +25,11 @@ This action installs 'cpm' as root so you can then use it in your workflow.
 #     perl: 'perl'
 ```
 
-## Using it in a GitHub workflow
+## Using install-with-cpm in a GitHub workflow
 
 Here is a sample integration using install-with-cpm action
-to test your Perl Module using multiple Perl versions.
+to test your Perl Modules using multiple Perl versions via the
+perl-tester images.
 
 ```yaml
 # .github/workflows/linux.yml
