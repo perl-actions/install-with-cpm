@@ -2,7 +2,7 @@
 
 # install-with-cpm
 
-GitHub action to install App::cpm
+GitHub action to install Perl modules using [App::cpm](https://github.com/skaji/cpm)
 
 This action installs 'cpm' as root so you can then use it in your workflow.
 
