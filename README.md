@@ -10,9 +10,10 @@ This action installs 'cpm' as root so you can then use it in your workflow.
 - name: install cpm and multiple modules
   uses: perl-actions/install-cpm@v1.2
   with:
-      install: |
-        Simple::Accessor
-        Test::Parallel
+    install: |
+      Simple::Accessor
+      Test::Parallel
+
 # or you can use a cpanfile
 #     cpanfile: 'your-cpanfile'
 # default values you can customize
@@ -34,15 +35,15 @@ to test your Perl Module using multiple Perl versions.
 jobs:
   perl_tester:
     runs-on: ubuntu-latest
-    name: 'perl v${{ matrix.perl-version }}'
+    name: "perl v${{ matrix.perl-version }}"
 
     strategy:
       fail-fast: false
       matrix:
         perl-version:
-          - '5.30'
-          - '5.28'
-          - '5.26'
+          - "5.30"
+          - "5.28"
+          - "5.26"
         # ...
         # - '5.8'
 
@@ -54,7 +55,7 @@ jobs:
       - name: uses install-cpm
         uses: perl-actions/install-cpm@v1.2
         with:
-          cpanfile: 'cpanfile'
+          cpanfile: "cpanfile"
           sudo: false
       - run: perl Makefile.PL
       - run: make test
@@ -117,7 +118,7 @@ You can then use cpm yourself in order commands.
 - name: install cpm
   uses: perl-actions/install-cpm@v1.2
 # then you can use it
-- run: 'sudo cpm install -g Simple::Accessor'
+- run: "sudo cpm install -g Simple::Accessor"
 ```
 
 ### Install an older version of cpm
@@ -129,7 +130,7 @@ You can then use cpm yourself in order commands.
 - name: install cpm
   uses: perl-actions/install-cpm@v1.2
   with:
-    version: '0.990'
+    version: "0.990"
 ```
 
 ### Install a single module
@@ -138,7 +139,7 @@ You can then use cpm yourself in order commands.
 - name: install cpm and one module
   uses: perl-actions/install-cpm@v1.2
   with:
-    install: 'Simple::Accessor'
+    install: "Simple::Accessor"
 ```
 
 ### Install multiple modules
@@ -149,9 +150,9 @@ List modules seperated by a newline character `\n`
 - name: install cpm and multiple modules
   uses: perl-actions/install-cpm@v1.2
   with:
-      install: |
-        Simple::Accessor
-        Test::Parallel
+    install: |
+      Simple::Accessor
+      Test::Parallel
 ```
 
 ### Install modules from a cpanfile
@@ -160,7 +161,7 @@ List modules seperated by a newline character `\n`
 - name: install cpm and files from cpanfile
   uses: perl-actions/install-cpm@v1.2
   with:
-    cpanfile: 'your-cpanfile'
+    cpanfile: "your-cpanfile"
 ```
 
 ### Install a module and enable tests
@@ -171,8 +172,8 @@ Install modules with tests.
 - name: install cpm and files from cpanfile
   uses: perl-actions/install-cpm@v1.2
   with:
-      install: 'Simple::Accessor'
-      tests: true
+    install: "Simple::Accessor"
+    tests: true
 ```
 
 ### Install module(s) to local directory
@@ -183,17 +184,17 @@ Disable the `-g` flag.
 - name: install cpm and files from cpanfile
   uses: perl-actions/install-cpm@v1.2
   with:
-      install: 'Simple::Accessor'
-      global: false
-      sudo: false
+    install: "Simple::Accessor"
+    global: false
+    sudo: false
 ```
 
 ### Use some custom args to install
 
 ```yaml
-- name: 'install cpm + cpanfile with args'
+- name: "install cpm + cpanfile with args"
   uses: perl-actions/install-cpm@v1.2
   with:
-      cpanfile: 'your-cpanfile'
-      args: '--with-recommends --with-suggests'
+    cpanfile: "your-cpanfile"
+    args: "--with-recommends --with-suggests"
 ```

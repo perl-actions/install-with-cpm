@@ -1,52 +1,51 @@
-name: 'install cpm'
-description: 'install App::cpm'
+name: "install cpm"
+description: "install App::cpm"
 branding:
-  icon: 'arrow-right'
-  color: 'blue'
+  icon: "arrow-right"
+  color: "blue"
 inputs:
-
   install:
-    description: 'List of modules or distributions to install [seperated by newline]'
+    description: "List of modules or distributions to install [seperated by newline]"
     required: false
 
   cpanfile:
-    description: 'Use a cpanfile to install modules'
+    description: "Use a cpanfile to install modules"
     required: false
 
   tests:
-    description: 'Run or not the unit tests'
+    description: "Run or not the unit tests"
     required: false
     default: false
 
   global:
-    description: 'Perform a global or local installation: -g'
+    description: "Perform a global or local installation: -g"
     required: false
     default: true
 
   args:
-    description: 'Extra args used passed to install command'
+    description: "Extra args used passed to install command"
     required: false
 
   sudo:
-    description: 'Perform installations as root'
+    description: "Perform installations as root"
     required: false
     default: true
 
   perl:
-    description: 'Path of perl to use default to currtent PATH'
+    description: "Path of perl to use default to currtent PATH"
     required: false
-    default: 'perl'
+    default: "perl"
 
   path:
-    description: 'Path where to install cpm: the string can use $Config values'
+    description: "Path where to install cpm: the string can use $Config values"
     required: false
     default: "$Config{installsitescript}/cpm"
 
   version:
-    description: 'Which version to install'
+    description: "Which version to install"
     required: false
-    default: 'master'
+    default: "master"
 
 runs:
-  using: 'node12'
-  main: 'index.js'
+  using: "node12"
+  main: "index.js"
