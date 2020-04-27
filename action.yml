@@ -15,7 +15,7 @@ inputs:
   tests:
     description: "Run or not the unit tests"
     required: false
-    default: false
+    default: true
 
   global:
     description: "Perform a global or local installation: -g"
