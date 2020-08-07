@@ -8,7 +8,7 @@ This action installs 'cpm' as root so you can then use it in your workflow.
 
 ```yaml
 - name: install cpm and multiple modules
-  uses: perl-actions/install-with-cpm@v1.3
+  uses: perl-actions/install-with-cpm@stable
   with:
     install: |
       Simple::Accessor
@@ -54,7 +54,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: uses install-with-cpm
-        uses: perl-actions/install-with-cpm@v1.3
+        uses: perl-actions/install-with-cpm@stable
         with:
           cpanfile: "cpanfile"
           sudo: false
@@ -117,7 +117,7 @@ You can then use cpm yourself in order commands.
 
 ```yaml
 - name: install cpm
-  uses: perl-actions/install-with-cpm@v1.3
+  uses: perl-actions/install-with-cpm@stable
 # then you can use it
 - run: "sudo cpm install -g Simple::Accessor"
 ```
@@ -129,7 +129,7 @@ You can then use cpm yourself in order commands.
 
 ```yaml
 - name: install cpm
-  uses: perl-actions/install-with-cpm@v1.3
+  uses: perl-actions/install-with-cpm@stable
   with:
     version: "0.990"
 ```
@@ -138,7 +138,7 @@ You can then use cpm yourself in order commands.
 
 ```yaml
 - name: install cpm and one module
-  uses: perl-actions/install-with-cpm@v1.3
+  uses: perl-actions/install-with-cpm@stable
   with:
     install: "Simple::Accessor"
 ```
@@ -149,7 +149,7 @@ List modules seperated by a newline character `\n`
 
 ```yaml
 - name: install cpm and multiple modules
-  uses: perl-actions/install-with-cpm@v1.3
+  uses: perl-actions/install-with-cpm@stable
   with:
     install: |
       Simple::Accessor
@@ -160,7 +160,7 @@ List modules seperated by a newline character `\n`
 
 ```yaml
 - name: install cpm and files from cpanfile
-  uses: perl-actions/install-with-cpm@v1.3
+  uses: perl-actions/install-with-cpm@stable
   with:
     cpanfile: "your-cpanfile"
 ```
@@ -171,7 +171,7 @@ Install modules with tests.
 
 ```yaml
 - name: install cpm and files from cpanfile
-  uses: perl-actions/install-with-cpm@v1.3
+  uses: perl-actions/install-with-cpm@stable
   with:
     install: "Simple::Accessor"
     tests: true
@@ -183,7 +183,7 @@ Disable the `-g` flag.
 
 ```yaml
 - name: install cpm and files from cpanfile
-  uses: perl-actions/install-with-cpm@v1.3
+  uses: perl-actions/install-with-cpm@stable
   with:
     install: "Simple::Accessor"
     global: false
@@ -194,7 +194,7 @@ Disable the `-g` flag.
 
 ```yaml
 - name: "install cpm + cpanfile with args"
-  uses: perl-actions/install-with-cpm@v1.3
+  uses: perl-actions/install-with-cpm@stable
   with:
     cpanfile: "your-cpanfile"
     args: "--with-recommends --with-suggests"
@@ -221,7 +221,7 @@ windows:
     - uses: actions/checkout@v2
     - name: "install-with-cpm"
 
-      uses: perl-actions/install-with-cpm@v1.3
+      uses: perl-actions/install-with-cpm@stable
       with:
         install: |
           abbreviation
