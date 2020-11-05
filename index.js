@@ -101,6 +101,7 @@ async function run() {
   const tests = core.getInput("tests");
   const dash_g = core.getInput("global");
   const args = core.getInput("args");
+  const verbose = core.getInput("verbose");
 
   const w_tests = is_true(tests) ? "--test" : "--no-test";
   var w_args = [];
@@ -115,9 +116,12 @@ async function run() {
     cpm_location,
     "install",
     "--show-build-log-on-failure",
-    "-v",
     w_tests,
   ];
+
+  if (is_true(verbose)) {
+    CMD_install.push("-v");
+  }
   if (is_true(dash_g)) {
     CMD_install.push("-g");
   }
