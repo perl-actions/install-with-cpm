@@ -88,6 +88,12 @@ Possible values: true | false [default: true]
 
 Extra arguments to pass to the cpm command line.
 
+You can also use this option to run your own flavor
+without the need of setting `install` or `cpanfile`.
+```yaml
+args: "--installdeps ."
+```
+
 ### `sudo`
 
 Run commands as sudo: true | false [default: true]
