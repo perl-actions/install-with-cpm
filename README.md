@@ -106,6 +106,14 @@ Which perl path to use. Default to use `perl` from the current `PATH`.
 
 Where to install `cpm`. Default value is `$Config{installsitescript}/cpm`.
 
+### `verbose`
+
+Boolean variable used to control the `-v` flag
+Possible values: true | false [default: false]
+
+Note: this was previously set to true by default,
+this is now disabled to speedup installations.
+
 ### `version`
 
 Which version/tag of `cpm` to install. Default is 'master' to use the latest version.
