@@ -18,7 +18,7 @@ This action installs 'cpm' as root so you can then use it in your workflow.
 #     cpanfile: 'your-cpanfile'
 # default values you can customize
 #     sudo: true
-#     version: master
+#     version: main
 # where to install cpm
 #     path: "$Config{installsitescript}/cpm"
 # which perl binary to use
@@ -116,7 +116,7 @@ this is now disabled to speedup installations.
 
 ### `version`
 
-Which version/tag of `cpm` to install. Default is 'master' to use the latest version.
+Which version/tag of `cpm` to install. Default is 'main' to use the latest version.
 
 ## Outputs
 
