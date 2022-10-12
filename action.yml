@@ -52,5 +52,5 @@ inputs:
     default: "main"
 
 runs:
-  using: "node12"
+  using: "node16"
   main: "index.js"
