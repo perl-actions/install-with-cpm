@@ -1,3 +1,4 @@
+---
 name: check
 
 on: [push]
@@ -14,7 +15,7 @@ jobs:
 
   cpm:
     runs-on: ubuntu-latest
-    name: "install cpm"
+    name: 'install cpm'
     steps:
       - uses: actions/checkout@v3
       - name: uses install-with-cpm
@@ -26,13 +27,13 @@ jobs:
 
   cpm_version:
     runs-on: ubuntu-latest
-    name: "install cpm 0.990"
+    name: 'install cpm 0.990'
     steps:
       - uses: actions/checkout@v3
       - name: uses install-with-cpm
         uses: ./
         with:
-          version: "0.990"
+          version: '0.990'
       - name: cpm --version
         run: |
           cpm --version
@@ -43,13 +44,13 @@ jobs:
 
   one_module:
     runs-on: ubuntu-latest
-    name: "cpm and a module"
+    name: 'cpm and a module'
     steps:
       - uses: actions/checkout@v3
       - name: uses install-with-cpm
         uses: ./
         with:
-          install: "Simple::Accessor"
+          install: 'Simple::Accessor'
       - run: perl -MSimple::Accessor -e1
 
   ### ------------------------------------------------
@@ -58,7 +59,7 @@ jobs:
 
   multiple_modules:
     runs-on: ubuntu-latest
-    name: "cpm & modules"
+    name: 'cpm & modules'
     steps:
       - uses: actions/checkout@v3
       - name: uses install-with-cpm
@@ -76,33 +77,33 @@ jobs:
 
   cpanfile_root:
     runs-on: ubuntu-latest
-    name: "cpanfile as root"
+    name: 'cpanfile as root'
     steps:
       - uses: actions/checkout@v3
-      - name: "Create a cpanfile"
+      - name: 'Create a cpanfile'
         run: |
           echo "requires 'Simple::Accessor';" > cpanfile.test
       - name: uses install-with-cpm
         uses: ./
         with:
-          cpanfile: "cpanfile.test"
+          cpanfile: 'cpanfile.test'
       - run: perl -MSimple::Accessor -e1
 
   cpanfile_nonroot:
     runs-on: ubuntu-latest
-    name: "cpanfile non root"
+    name: 'cpanfile non root'
     steps:
       - uses: actions/checkout@v3
-      - name: "Create a cpanfile"
+      - name: 'Create a cpanfile'
         run: |
           echo "requires 'Simple::Accessor';" > cpanfile.test
       - name: uses install-with-cpm
         uses: ./
         with:
-          cpanfile: "cpanfile.test"
+          cpanfile: 'cpanfile.test'
           sudo: false
           global: false
-          path: "cpm"
+          path: 'cpm'
       - run: sudo perl cpm install -g local::lib
       - run: perl -Mlocal::lib=--no-create,local -MSimple::Accessor -e1
 
@@ -112,13 +113,13 @@ jobs:
 
   with_tests:
     runs-on: ubuntu-latest
-    name: "install with tests"
+    name: 'install with tests'
     steps:
       - uses: actions/checkout@v3
       - name: uses install-with-cpm
         uses: ./
         with:
-          install: "Simple::Accessor"
+          install: 'Simple::Accessor'
           tests: true
 
   ### ------------------------------------------------
@@ -127,14 +128,14 @@ jobs:
 
   perl_tester:
     runs-on: ubuntu-latest
-    name: "perl v${{ matrix.perl-version }}"
+    name: 'perl v${{ matrix.perl-version }}'
 
     strategy:
       fail-fast: false
       matrix:
         perl-version:
-          - "5.30"
-          - "5.28"
+          - '5.30'
+          - '5.28'
           # ...
 
     container:
@@ -160,17 +161,17 @@ jobs:
 
   with_args:
     runs-on: ubuntu-latest
-    name: "cpanfile with args"
+    name: 'cpanfile with args'
     steps:
       - uses: actions/checkout@v3
-      - name: "Create a cpanfile"
+      - name: 'Create a cpanfile'
         run: |
           echo "requires 'Simple::Accessor';" > cpanfile.test
       - name: uses install-with-cpm
         uses: ./
         with:
-          cpanfile: "cpanfile.test"
-          args: "--with-recommends --with-suggests"
+          cpanfile: 'cpanfile.test'
+          args: '--with-recommends --with-suggests'
       - run: perl -MSimple::Accessor -e1
 
   ## ------------------------------------------------
@@ -178,14 +179,14 @@ jobs:
   ## ------------------------------------------------
   windows:
     runs-on: windows-latest
-    name: "windows"
+    name: 'windows'
 
     steps:
       - name: perl -V
         run: perl -V
 
       - uses: actions/checkout@v3
-      - name: "install-with-cpm"
+      - name: 'install-with-cpm'
 
         uses: ./
         with:
