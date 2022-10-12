@@ -49,7 +49,7 @@ inputs:
   version:
     description: "Which version to install"
     required: false
-    default: "master"
+    default: "main"
 
 runs:
   using: "node12"
