@@ -52,7 +52,7 @@ jobs:
       image: perldocker/perl-tester:${{ matrix.perl-version }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: uses install-with-cpm
         uses: perl-actions/install-with-cpm@stable
         with:
@@ -232,7 +232,7 @@ windows:
     - name: perl -V
       run: perl -V
 
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: "install-with-cpm"
 
       uses: perl-actions/install-with-cpm@stable
