@@ -214,6 +214,18 @@ Disable the `-g` flag.
     args: "--with-recommends --with-suggests"
 ```
 
+Here is an extract of the possible args to use to control groups
+```
+        --with-requires,   --without-requires   (default: with)
+        --with-recommends, --without-recommends (default: without)
+        --with-suggests,   --without-suggests   (default: without)
+        --with-configure,  --without-configure  (default: without)
+        --with-build,      --without-build      (default: with)
+        --with-test,       --without-test       (default: with)
+        --with-runtime,    --without-runtime    (default: with)
+        --with-develop,    --without-develop    (default: without)
+```
+
 ### Using install-with-cpm on Windows / win32
 
 Here is a sample job using cpm to install modules on windows.
