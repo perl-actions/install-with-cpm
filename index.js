@@ -31,13 +31,11 @@ async function install_cpm(install_to) {
   const version = core.getInput("version");
   const url = `https://raw.githubusercontent.com/skaji/cpm/${version}/cpm`;
 
-  core.setOutput(`Get cpm from ${url}`);
+  console.log(`Get cpm from URL: ${url}`);
 
   const cpmScript = await tc.downloadTool(url);
 
-  core.setOutput("cpm", cpmScript);
-
-  console.log(`install_to ${install_to}`);
+  console.log(`Installing cpm to: ${install_to}`);
 
   const platform = os.platform();
   //console.log(`OS: :${platform}:`);
