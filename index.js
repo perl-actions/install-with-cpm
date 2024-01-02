@@ -31,16 +31,13 @@ async function install_cpm(install_to) {
   const version = core.getInput("version");
   const url = `https://raw.githubusercontent.com/skaji/cpm/${version}/cpm`;
 
-  core.info(`Get cpm from ${url}`);
+  core.info(`Get cpm from URL: ${url}`);
 
   const cpmScript = await tc.downloadTool(url);
 
-  core.info("cpm", cpmScript);
-
-  core.info(`install_to ${install_to}`);
+  core.info(`Install cpm to: ${install_to}`);
 
   const platform = os.platform();
-  //core.info(`OS: :${platform}:`);
 
   if (platform == "win32") {
     await io.cp(cpmScript, install_to);
@@ -52,8 +49,6 @@ async function install_cpm(install_to) {
       `cp("${cpmScript}", "${install_to}"); chmod(0755, "${install_to}")`,
     ]);
   }
-  //await io.cp(cpmScript, install_to); /* need to run with sudo */
-  //await ioUtil.chmod(install_to, '0755')
 
   return install_to;
 }
