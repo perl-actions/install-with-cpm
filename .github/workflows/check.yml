@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'install cpm'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: uses install-with-cpm
         uses: ./
       - name: which cpm
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'install cpm 0.990'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: uses install-with-cpm
         uses: ./
         with:
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'cpm and a module'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: uses install-with-cpm
         uses: ./
         with:
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'cpm & modules'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: uses install-with-cpm
         uses: ./
         with:
@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'cpanfile as root'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: 'Create a cpanfile'
         run: |
           echo "requires 'Simple::Accessor';" > cpanfile.test
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'cpanfile non root'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: 'Create a cpanfile'
         run: |
           echo "requires 'Simple::Accessor';" > cpanfile.test
@@ -115,7 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'install with tests'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: uses install-with-cpm
         uses: ./
         with:
@@ -142,7 +142,7 @@ jobs:
       image: perldocker/perl-tester:${{ matrix.perl-version }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: uses install-with-cpm
         uses: ./
         with:
@@ -163,7 +163,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'cpanfile with args'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: 'Create a cpanfile'
         run: |
           echo "requires 'Simple::Accessor';" > cpanfile.test
@@ -185,7 +185,7 @@ jobs:
       - name: perl -V
         run: perl -V
 
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: 'install-with-cpm'
 
         uses: ./
