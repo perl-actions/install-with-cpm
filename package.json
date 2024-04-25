@@ -1,10 +1,12 @@
 {
   "name": "install-with-cpm",
   "version": "1.6.0",
-  "description": "GitHub action to install App::cpm",
+  "description": "Install Perl modules with App::cpm",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "lint": "eslint index.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "ncc build index.js"
   },
   "repository": {
     "type": "git",
@@ -24,5 +26,11 @@
     "@actions/http-client": "^2.0.1",
     "@actions/io": "^1.1.2",
     "@actions/tool-cache": "^2.0.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@vercel/ncc": "^0.34.0",
+    "eslint": "^9.0.0",
+    "globals": "^15.0.0"
   }
 }
