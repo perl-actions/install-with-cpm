@@ -7,7 +7,7 @@ const io = require("@actions/io");
 const path = require("path");
 const os = require("os");
 
-var PERL;
+let PERL;
 
 async function install_cpm_location() {
   let out = "";
@@ -19,7 +19,7 @@ async function install_cpm_location() {
     },
   };
 
-  var p = core.getInput("path");
+  let p = core.getInput("path");
   p.replace("\\", "\\\\");
   await exec.exec(PERL, ["-MConfig", "-e", `print "${p}"`], options);
 
@@ -98,14 +98,14 @@ async function run() {
   const verbose = core.getInput("verbose");
 
   const w_tests = is_true(tests) ? "--test" : "--no-test";
-  var w_args = [];
+  let w_args = [];
 
   if (args !== null && args.length) {
     w_args = args.split(/\s+/);
   }
 
   /* base CMD_install command */
-  var CMD_install = [
+  let CMD_install = [
     PERL,
     cpm_location,
     "install",
@@ -123,7 +123,7 @@ async function run() {
     CMD_install = CMD_install.concat(w_args);
   }
 
-  var has_run = false;
+  let has_run = false;
 
   /* install one ore more modules */
   if (install !== null && install.length) {
@@ -131,7 +131,7 @@ async function run() {
     core.info(`install: ${install}!`);
     const list = install.split("\n");
 
-    var cmd = [...CMD_install]; /* clone array */
+    let cmd = [...CMD_install]; /* clone array */
     cmd = cmd.concat(list);
 
     has_run = true;
@@ -145,7 +145,7 @@ async function run() {
     const cpanfile_full_path = path.resolve(cpanfile);
     core.info(`cpanfile: ${cpanfile_full_path}! [resolved]`);
 
-    var cmd = [...CMD_install];
+    let cmd = [...CMD_install];
     cmd.push("--cpanfile", cpanfile_full_path);
 
     has_run = true;
@@ -155,7 +155,7 @@ async function run() {
   /* custom run with args */
   if ( has_run === false && w_args.length ) {
     core.info(`custom run with args`);
-    var cmd = [...CMD_install];
+    let cmd = [...CMD_install];
     has_run = true;
     await do_exec(cmd);
   }
