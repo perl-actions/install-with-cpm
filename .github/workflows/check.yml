@@ -1,7 +1,7 @@
 ---
 name: check
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   # note using ./ is a trick to be sure to use @master
