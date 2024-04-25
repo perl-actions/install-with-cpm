@@ -4,7 +4,6 @@ const tc = require("@actions/tool-cache");
 const exec = require("@actions/exec");
 const io = require("@actions/io");
 
-const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
