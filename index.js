@@ -68,10 +68,6 @@ function is_true(b) {
   return false;
 }
 
-function is_false(b) {
-  return is_true(b) ? false : true;
-}
-
 async function do_exec(cmd) {
   const sudo = is_true(core.getInput("sudo"));
   const platform = os.platform();
