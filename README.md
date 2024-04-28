@@ -28,32 +28,40 @@ This action installs 'cpm' as root so you can then use it in your workflow.
 
 ## Using install-with-cpm in a GitHub workflow
 
-Here is a sample integration using install-with-cpm action
+Here is a sample integration using `install-with-cpm` action
 to test your Perl Modules using multiple Perl versions via the
-perl-tester images.
+`perl-tester` images and the action `perl-actions/perl-versions` to rely on a dynamic list of available Perl versions.
 
 ```yaml
 # .github/workflows/linux.yml
 jobs:
+
+  perl-versions:
+    runs-on: ubuntu-latest
+    name: List Perl versions
+    outputs:
+      perl-versions: ${{ steps.action.outputs.perl-versions }}
+    steps:
+      - id: action
+        uses: perl-actions/perl-versions@v1
+        with:
+          since-perl: v5.10
+          with-devel: false
+
   perl_tester:
     runs-on: ubuntu-latest
-    name: "perl v${{ matrix.perl-version }}"
+    name: "Perl ${{ matrix.perl-version }}"
+    needs: [perl-versions]
 
     strategy:
       fail-fast: false
       matrix:
-        perl-version:
-          - "5.30"
-          - "5.28"
-          - "5.26"
-        # ...
-        # - '5.8'
+        perl-version: ${{ fromJson (needs.perl-versions.outputs.perl-versions) }}
 
-    container:
-      image: perldocker/perl-tester:${{ matrix.perl-version }}
+    container: perldocker/perl-tester:${{ matrix.perl-version }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: uses install-with-cpm
         uses: perl-actions/install-with-cpm@v1
         with:
@@ -242,10 +250,9 @@ windows:
         choco install strawberryperl
         echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
 
-    - name: perl -V
-      run: perl -V
+    - run: perl -V
 
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: "install-with-cpm"
 
       uses: perl-actions/install-with-cpm@v1
