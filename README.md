@@ -123,6 +123,14 @@ Possible values: true | false [default: false]
 Note: this was previously set to true by default,
 this is now disabled to speedup installations.
 
+### `without-snapshot`
+
+Boolean variable used to ignore `cpanfile.snapshot` even if it exists.
+When your project has a `cpanfile.snapshot` but you don't have `Carton::Snapshot`
+installed, cpm will fail. Set this to `true` to skip snapshot loading.
+
+Possible values: true | false [default: false]
+
 ### `version`
 
 Which version/tag of `cpm` to install. Default is 'main' to use the latest version.
@@ -233,6 +241,20 @@ Here is an extract of the possible args to use to control groups
         --with-test,       --without-test       (default: with)
         --with-runtime,    --without-runtime    (default: with)
         --with-develop,    --without-develop    (default: without)
+```
+
+### Install from a cpanfile with cpanfile.snapshot present
+
+If your project has a `cpanfile.snapshot` but you don't want to install
+`Carton::Snapshot`, use `without-snapshot` to skip it:
+
+```yaml
+- name: install deps ignoring snapshot
+  uses: perl-actions/install-with-cpm@v1
+  with:
+    cpanfile: "cpanfile"
+    without-snapshot: true
+    sudo: false
 ```
 
 ### Using install-with-cpm on Windows / win32

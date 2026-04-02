@@ -46,6 +46,11 @@ inputs:
     required: false
     default: "$Config{installsitescript}/cpm"
 
+  without-snapshot:
+    description: "Ignore cpanfile.snapshot even if it exists"
+    required: false
+    default: false
+
   version:
     description: "Which version to install"
     required: false
