@@ -5,7 +5,7 @@ branding:
   color: "blue"
 inputs:
   install:
-    description: "List of modules or distributions to install [seperated by newline]"
+    description: "List of modules or distributions to install [separated by newline]"
     required: false
 
   cpanfile:
@@ -23,7 +23,7 @@ inputs:
     default: true
 
   args:
-    description: "Extra args used passed to install command"
+    description: "Extra args passed to the install command"
     required: false
 
   sudo:
@@ -37,7 +37,7 @@ inputs:
     default: false
 
   perl:
-    description: "Path of perl to use default to currtent PATH"
+    description: "Path of perl to use, defaults to current PATH"
     required: false
     default: "perl"
 
