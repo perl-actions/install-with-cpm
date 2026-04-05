@@ -91,6 +91,7 @@ async function run() {
     const dash_g = core.getInput("global");
     const args = core.getInput("args");
     const verbose = core.getInput("verbose");
+    const snapshot = core.getInput("snapshot");
 
     const w_tests = is_true(tests) ? "--test" : "--no-test";
     let w_args = [];
@@ -110,6 +111,11 @@ async function run() {
 
     if (is_true(verbose)) {
         CMD_install.push("-v");
+    }
+    if (snapshot !== null && snapshot.length) {
+        CMD_install.push("--snapshot", snapshot);
+    } else {
+        CMD_install.push("--snapshot", "");
     }
     if (is_true(dash_g)) {
         CMD_install.push("-g");
