@@ -46,6 +46,11 @@ inputs:
     required: false
     default: "$Config{installsitescript}/cpm"
 
+  snapshot:
+    description: "Path to cpanfile.snapshot for snapshot-based installs (requires Carton::Snapshot). Leave empty to skip."
+    required: false
+    default: ""
+
   version:
     description: "Which version to install"
     required: false
