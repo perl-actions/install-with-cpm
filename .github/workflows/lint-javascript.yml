@@ -1,4 +1,4 @@
-name: Lint javascript
+name: Lint and test javascript
 on:
     push:
         paths:
@@ -21,3 +21,5 @@ jobs:
               run: npm ci
             - name: Lint javascript
               run: npm run lint
+            - name: Run tests
+              run: npm test
