@@ -108,6 +108,25 @@ jobs:
       - run: perl -Mlocal::lib=--no-create,local -MSimple::Accessor -e1
 
   ### ------------------------------------------------
+  ### Install from cpanfile when cpanfile.snapshot exists (issue #10)
+  ### ------------------------------------------------
+
+  cpanfile_with_snapshot:
+    runs-on: ubuntu-latest
+    name: 'cpanfile + snapshot'
+    steps:
+      - uses: actions/checkout@v4
+      - name: 'Create cpanfile and cpanfile.snapshot'
+        run: |
+          echo "requires 'Simple::Accessor';" > cpanfile
+          echo '# carton snapshot format: version 1.0' > cpanfile.snapshot
+      - name: uses install-with-cpm
+        uses: ./
+        with:
+          cpanfile: 'cpanfile'
+      - run: perl -MSimple::Accessor -e1
+
+  ### ------------------------------------------------
   ### Install a module and enable tests
   ### ------------------------------------------------
 
