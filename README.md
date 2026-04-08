@@ -43,7 +43,7 @@ jobs:
       perl-versions: ${{ steps.action.outputs.perl-versions }}
     steps:
       - id: action
-        uses: perl-actions/perl-versions@v1
+        uses: perl-actions/perl-versions@v2
         with:
           since-perl: v5.10
           with-devel: false
@@ -179,7 +179,7 @@ You can then use cpm yourself in order commands.
 
 ### Install multiple modules
 
-List modules seperated by a newline character `\n`
+List modules separated by a newline character `\n`
 
 ```yaml
 - name: install cpm and multiple modules
