@@ -123,6 +123,17 @@ Possible values: true | false [default: false]
 Note: this was previously set to true by default,
 this is now disabled to speedup installations.
 
+### `snapshot`
+
+Path to a `cpanfile.snapshot` for snapshot-based installs. Requires `Carton::Snapshot` to be installed.
+By default this is empty, which disables cpm's automatic snapshot detection.
+This prevents the common CI failure when `cpanfile.snapshot` exists in the repo but `Carton::Snapshot` is not available.
+
+```yaml
+# To use snapshot-based resolution:
+snapshot: "cpanfile.snapshot"
+```
+
 ### `version`
 
 Which version/tag of `cpm` to install. Default is 'main' to use the latest version.
