@@ -56,12 +56,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        perl-version: ${{ fromJson (needs.perl-versions.outputs.perl-versions) }}
+        perl-version: ${{ fromJson(needs.perl-versions.outputs.perl-versions) }}
 
     container: perldocker/perl-tester:${{ matrix.perl-version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: uses install-with-cpm
         uses: perl-actions/install-with-cpm@v1
         with:
@@ -248,7 +248,8 @@ Here is an extract of the possible args to use to control groups
 
 ### Using install-with-cpm on Windows / win32
 
-Here is a sample job using cpm to install modules on windows.
+Here is a sample job using cpm to install modules on Windows.
+Strawberry Perl is pre-installed on `windows-latest` runners.
 
 ```yaml
 windows:
@@ -256,16 +257,10 @@ windows:
   name: "windows"
 
   steps:
-    - name: Set up Perl
-      run: |
-        choco install strawberryperl
-        echo "##[add-path]C:\strawberry\c\bin;C:\strawberry\perl\site\bin;C:\strawberry\perl\bin"
-
     - run: perl -V
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@v6
     - name: "install-with-cpm"
-
       uses: perl-actions/install-with-cpm@v1
       with:
         install: |
