@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'install cpm'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: uses install-with-cpm
         uses: ./
       - name: which cpm
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'install cpm 0.990'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: uses install-with-cpm
         uses: ./
         with:
@@ -46,7 +46,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'cpm and a module'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: uses install-with-cpm
         uses: ./
         with:
@@ -61,7 +61,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'cpm & modules'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: uses install-with-cpm
         uses: ./
         with:
@@ -79,7 +79,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'cpanfile as root'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: 'Create a cpanfile'
         run: |
           echo "requires 'Simple::Accessor';" > cpanfile.test
@@ -93,7 +93,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'cpanfile non root'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: 'Create a cpanfile'
         run: |
           echo "requires 'Simple::Accessor';" > cpanfile.test
@@ -115,12 +115,28 @@ jobs:
     runs-on: ubuntu-latest
     name: 'install with tests'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: uses install-with-cpm
         uses: ./
         with:
           install: 'Simple::Accessor'
           tests: true
+
+  ### ------------------------------------------------
+  ### generate dynamic perl version list
+  ### ------------------------------------------------
+
+  perl-versions:
+    runs-on: ubuntu-latest
+    name: List Perl versions
+    outputs:
+      perl-versions: ${{ steps.action.outputs.perl-versions }}
+    steps:
+      - id: action
+        uses: perl-actions/perl-versions@v2
+        with:
+          since-perl: v5.28
+          with-devel: true
 
   ### ------------------------------------------------
   ### check perl-tester
@@ -129,24 +145,18 @@ jobs:
   perl_tester:
     runs-on: ubuntu-latest
     name: 'perl v${{ matrix.perl-version }}'
+    needs: [perl-versions]
 
     strategy:
       fail-fast: false
       matrix:
-        perl-version:
-          - '5.38'
-          - '5.36'
-          - '5.34'
-          - '5.32'
-          - '5.30'
-          - '5.28'
-          # ...
+        perl-version: ${{ fromJson(needs.perl-versions.outputs.perl-versions) }}
 
     container:
       image: perldocker/perl-tester:${{ matrix.perl-version }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: uses install-with-cpm
         uses: ./
         with:
@@ -167,7 +177,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'cpanfile with args'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: 'Create a cpanfile'
         run: |
           echo "requires 'Simple::Accessor';" > cpanfile.test
@@ -189,7 +199,7 @@ jobs:
       - name: perl -V
         run: perl -V
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: 'install-with-cpm'
 
         uses: ./
