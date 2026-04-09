@@ -115,7 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     name: 'cpanfile + snapshot'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: 'Create cpanfile and cpanfile.snapshot'
         run: |
           echo "requires 'Simple::Accessor';" > cpanfile
