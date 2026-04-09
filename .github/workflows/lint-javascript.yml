@@ -23,3 +23,19 @@ jobs:
               run: npm run lint
             - name: Run tests
               run: npm test
+
+    check-dist:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+            - name: Install dependencies
+              run: npm ci
+            - name: Rebuild dist
+              run: npm run build
+            - name: Check dist is up-to-date
+              run: |
+                if [ "$(git diff --name-only dist/)" != "" ]; then
+                  echo "::error::dist/index.js is out of date. Run 'npm run build' and commit the result."
+                  git diff --stat dist/
+                  exit 1
+                fi
