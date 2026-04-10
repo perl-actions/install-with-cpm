@@ -34,8 +34,17 @@ function cpm_cache_dir() {
     return path.join(os.tmpdir(), "cpm-cache");
 }
 
+const VERSION_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
+
 async function install_cpm(install_to) {
     const version = core.getInput("version");
+
+    if (!version || !VERSION_PATTERN.test(version) || version.includes("..")) {
+        throw new Error(
+            `Invalid version: "${version}". Version must be a branch name, tag, or commit SHA (e.g., "main", "0.997014").`
+        );
+    }
+
     const url = `https://raw.githubusercontent.com/skaji/cpm/${version}/cpm`;
 
     const cacheKey = cpm_cache_key();
