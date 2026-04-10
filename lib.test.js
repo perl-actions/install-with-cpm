@@ -416,6 +416,55 @@ describe("run", () => {
         expect(allArgs).not.toContain("--workers");
     });
 
+    test("passes mirror option when provided", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            mirror: "https://cpan.metacpan.org/",
+        });
+
+        await lib.run();
+
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+
+        expect(allArgs).toContain("--mirror");
+        expect(allArgs).toContain("https://cpan.metacpan.org/");
+    });
+
+    test("does not add --mirror when mirror is empty", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            mirror: "",
+        });
+
+        await lib.run();
+
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+
+        expect(allArgs).not.toContain("--mirror");
+    });
+
     test("passes snapshot option when provided", async () => {
         mockInputs({
             perl: "perl",

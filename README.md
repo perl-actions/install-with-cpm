@@ -138,6 +138,14 @@ By default this is empty, which lets cpm use its own default.
     workers: 5
 ```
 
+### `mirror`
+
+Specify a CPAN mirror URL. When set, `--mirror <url>` is appended to the cpm command.
+
+```yaml
+mirror: "https://cpan.metacpan.org/"
+```
+
 ### `snapshot`
 
 Path to a `cpanfile.snapshot` for snapshot-based installs. Requires `Carton::Snapshot` to be installed.
