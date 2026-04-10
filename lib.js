@@ -1,4 +1,5 @@
 const core = require("@actions/core");
+const cache = require("@actions/cache");
 const tc = require("@actions/tool-cache");
 const exec = require("@actions/exec");
 const io = require("@actions/io");
@@ -24,13 +25,51 @@ async function install_cpm_location() {
     return path.resolve(out);
 }
 
+function cpm_cache_key() {
+    const version = core.getInput("version");
+    return `cpm-script-${version}-${os.platform()}`;
+}
+
+function cpm_cache_dir() {
+    return path.join(os.tmpdir(), "cpm-cache");
+}
+
 async function install_cpm(install_to) {
     const version = core.getInput("version");
     const url = `https://raw.githubusercontent.com/skaji/cpm/${version}/cpm`;
 
-    core.info(`Get cpm from URL: ${url}`);
+    const cacheKey = cpm_cache_key();
+    const cacheDir = cpm_cache_dir();
+    const cachedScript = path.join(cacheDir, "cpm");
 
-    const cpmScript = await tc.downloadTool(url);
+    // Try restoring from cache
+    let cpmScript;
+    let cacheHit = false;
+    try {
+        const restored = await cache.restoreCache([cacheDir], cacheKey);
+        if (restored) {
+            core.info(`Cache hit for cpm (key: ${cacheKey})`);
+            cpmScript = cachedScript;
+            cacheHit = true;
+        }
+    } catch (e) {
+        core.info(`Cache restore failed, will download: ${e.message}`);
+    }
+
+    if (!cacheHit) {
+        core.info(`Get cpm from URL: ${url}`);
+        cpmScript = await tc.downloadTool(url);
+
+        // Save to cache for future runs
+        try {
+            await io.mkdirP(cacheDir);
+            await io.cp(cpmScript, cachedScript);
+            await cache.saveCache([cacheDir], cacheKey);
+            core.info(`Saved cpm to cache (key: ${cacheKey})`);
+        } catch (e) {
+            core.info(`Cache save failed (non-fatal): ${e.message}`);
+        }
+    }
 
     core.info(`Install cpm to: ${install_to}`);
 
@@ -167,6 +206,8 @@ module.exports = {
     which_perl,
     install_cpm_location,
     install_cpm,
+    cpm_cache_key,
+    cpm_cache_dir,
     run,
     // Expose PERL setter for testing
     set_perl(p) { PERL = p; },
