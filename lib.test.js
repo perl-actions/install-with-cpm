@@ -555,7 +555,7 @@ describe("run", () => {
 });
 
 describe("do_exec mutation", () => {
-    test("shift removes first element from cmd array", async () => {
+    test("does not mutate the caller's cmd array", async () => {
         core.getInput.mockImplementation((name) => {
             if (name === "sudo") return "false";
             return "";
@@ -566,8 +566,22 @@ describe("do_exec mutation", () => {
         const cmd = ["/usr/bin/perl", "-e", "1"];
         await lib.do_exec(cmd);
 
-        // cmd.shift() mutates the original array
-        expect(cmd).toEqual(["-e", "1"]);
+        // The caller's array must remain intact
+        expect(cmd).toEqual(["/usr/bin/perl", "-e", "1"]);
+    });
+
+    test("does not mutate cmd array when sudo is enabled", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "sudo") return "true";
+            return "";
+        });
+        exec.exec.mockResolvedValue(0);
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+
+        const cmd = ["/usr/bin/perl", "-e", "1"];
+        await lib.do_exec(cmd);
+
+        expect(cmd).toEqual(["/usr/bin/perl", "-e", "1"]);
     });
 });
 
