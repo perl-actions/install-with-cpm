@@ -3,11 +3,13 @@ const os = require("os");
 
 // Mock @actions/* packages before requiring lib
 jest.mock("@actions/core");
+jest.mock("@actions/cache");
 jest.mock("@actions/tool-cache");
 jest.mock("@actions/exec");
 jest.mock("@actions/io");
 
 const core = require("@actions/core");
+const cache = require("@actions/cache");
 const tc = require("@actions/tool-cache");
 const exec = require("@actions/exec");
 const io = require("@actions/io");
@@ -18,6 +20,9 @@ beforeEach(() => {
     jest.clearAllMocks();
     core.info.mockImplementation(() => {});
     core.getInput.mockImplementation(() => "");
+    cache.restoreCache.mockResolvedValue(undefined);
+    cache.saveCache.mockResolvedValue(0);
+    io.mkdirP.mockResolvedValue();
 });
 
 describe("is_true", () => {
@@ -590,5 +595,122 @@ describe("install_cpm_location with backslash path", () => {
         // The path should have backslashes escaped for Perl string interpolation
         const execArgs = exec.exec.mock.calls[0];
         expect(execArgs[1][2]).toBe('print "C:\\\\Perl\\\\bin\\\\cpm"');
+    });
+});
+
+describe("cpm_cache_key", () => {
+    test("includes version and platform", () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "0.997014";
+            return "";
+        });
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+
+        expect(lib.cpm_cache_key()).toBe("cpm-script-0.997014-linux");
+    });
+
+    test("uses main version by default", () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            return "";
+        });
+        jest.spyOn(os, "platform").mockReturnValue("darwin");
+
+        expect(lib.cpm_cache_key()).toBe("cpm-script-main-darwin");
+    });
+});
+
+describe("cpm_cache_dir", () => {
+    test("returns a path under tmpdir", () => {
+        const dir = lib.cpm_cache_dir();
+        expect(dir).toBe(path.join(os.tmpdir(), "cpm-cache"));
+    });
+});
+
+describe("install_cpm caching", () => {
+    beforeEach(() => {
+        lib.set_perl("/usr/bin/perl");
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+    });
+
+    test("skips download on cache hit", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "sudo") return "false";
+            return "";
+        });
+        cache.restoreCache.mockResolvedValue("cpm-script-main-linux");
+        exec.exec.mockResolvedValue(0);
+
+        await lib.install_cpm("/usr/local/bin/cpm");
+
+        expect(tc.downloadTool).not.toHaveBeenCalled();
+        expect(cache.saveCache).not.toHaveBeenCalled();
+        expect(core.info).toHaveBeenCalledWith(
+            expect.stringContaining("Cache hit")
+        );
+    });
+
+    test("downloads and saves cache on cache miss", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "sudo") return "false";
+            return "";
+        });
+        cache.restoreCache.mockResolvedValue(undefined);
+        tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
+        exec.exec.mockResolvedValue(0);
+        io.cp.mockResolvedValue();
+        io.mkdirP.mockResolvedValue();
+
+        await lib.install_cpm("/usr/local/bin/cpm");
+
+        expect(tc.downloadTool).toHaveBeenCalledWith(
+            "https://raw.githubusercontent.com/skaji/cpm/main/cpm"
+        );
+        expect(io.mkdirP).toHaveBeenCalled();
+        expect(cache.saveCache).toHaveBeenCalledWith(
+            [lib.cpm_cache_dir()],
+            "cpm-script-main-linux"
+        );
+    });
+
+    test("continues on cache restore failure", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "sudo") return "false";
+            return "";
+        });
+        cache.restoreCache.mockRejectedValue(new Error("cache unavailable"));
+        tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
+        exec.exec.mockResolvedValue(0);
+        io.cp.mockResolvedValue();
+        io.mkdirP.mockResolvedValue();
+
+        await lib.install_cpm("/usr/local/bin/cpm");
+
+        // Should fall back to download
+        expect(tc.downloadTool).toHaveBeenCalled();
+    });
+
+    test("continues on cache save failure", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "sudo") return "false";
+            return "";
+        });
+        cache.restoreCache.mockResolvedValue(undefined);
+        tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
+        cache.saveCache.mockRejectedValue(new Error("save failed"));
+        exec.exec.mockResolvedValue(0);
+        io.cp.mockResolvedValue();
+        io.mkdirP.mockResolvedValue();
+
+        // Should not throw
+        await lib.install_cpm("/usr/local/bin/cpm");
+
+        expect(core.info).toHaveBeenCalledWith(
+            expect.stringContaining("Cache save failed")
+        );
     });
 });
