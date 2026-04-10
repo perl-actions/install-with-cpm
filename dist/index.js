@@ -114,11 +114,13 @@ function is_true(b) {
 async function do_exec(cmd) {
     const sudo = is_true(core.getInput("sudo"));
     const platform = os.platform();
-    const bin = sudo && platform != "win32" ? "sudo" : cmd.shift();
+    const [first, ...rest] = cmd;
+    const bin = sudo && platform != "win32" ? "sudo" : first;
+    const args = sudo && platform != "win32" ? cmd : rest;
 
     core.info(`do_exec: ${bin}`);
 
-    await exec.exec(bin, cmd);
+    await exec.exec(bin, args);
 }
 
 async function run() {
