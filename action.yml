@@ -46,6 +46,11 @@ inputs:
     required: false
     default: "$Config{installsitescript}/cpm"
 
+  workers:
+    description: "Number of parallel workers for cpm downloads (e.g. 5). Leave empty to use cpm default."
+    required: false
+    default: ""
+
   snapshot:
     description: "Path to cpanfile.snapshot for snapshot-based installs (requires Carton::Snapshot). Leave empty to skip."
     required: false

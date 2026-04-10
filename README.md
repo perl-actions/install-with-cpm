@@ -123,6 +123,21 @@ Possible values: true | false [default: false]
 Note: this was previously set to true by default,
 this is now disabled to speedup installations.
 
+### `workers`
+
+Number of parallel workers for cpm downloads (e.g. `5`).
+When set, passes `--workers N` to cpm, enabling parallel module downloads.
+This can significantly speed up installation of large cpanfiles.
+By default this is empty, which lets cpm use its own default.
+
+```yaml
+- name: install with parallel downloads
+  uses: perl-actions/install-with-cpm@v2
+  with:
+    cpanfile: "cpanfile"
+    workers: 5
+```
+
 ### `snapshot`
 
 Path to a `cpanfile.snapshot` for snapshot-based installs. Requires `Carton::Snapshot` to be installed.

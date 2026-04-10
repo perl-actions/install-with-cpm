@@ -366,6 +366,56 @@ describe("run", () => {
         expect(core.info).toHaveBeenCalledWith("custom run with args");
     });
 
+    test("passes --workers flag when workers input is set", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            workers: "5",
+        });
+
+        await lib.run();
+
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+
+        expect(allArgs).toContain("--workers");
+        const idx = allArgs.indexOf("--workers");
+        expect(allArgs[idx + 1]).toBe("5");
+    });
+
+    test("omits --workers flag when workers input is empty", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            workers: "",
+        });
+
+        await lib.run();
+
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+
+        expect(allArgs).not.toContain("--workers");
+    });
+
     test("passes snapshot option when provided", async () => {
         mockInputs({
             perl: "perl",
