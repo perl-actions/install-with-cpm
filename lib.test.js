@@ -638,6 +638,40 @@ describe("run", () => {
         expect(allArgs).toContain("DBD::SQLite");
     });
 
+    test("filters out empty lines from multiline install", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose\n\n  \nDBI\n",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+        });
+
+        await lib.run();
+
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+
+        expect(allArgs).toContain("Moose");
+        expect(allArgs).toContain("DBI");
+        // Empty strings should not be passed as arguments
+        expect(allArgs.filter((a) => a === "" || a.trim() === "")).toEqual(
+            // Only the snapshot "" should be empty, not module names
+            allArgs.filter(
+                (a, i) =>
+                    (a === "" || a.trim() === "") &&
+                    i > 0 &&
+                    allArgs[i - 1] === "--snapshot"
+            )
+        );
+    });
+
     test("propagates download errors", async () => {
         mockInputs({
             perl: "perl",

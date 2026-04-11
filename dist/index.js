@@ -193,7 +193,7 @@ async function run() {
     if (install !== null && install.length) {
         // install one or more modules
         core.info(`install: ${install}!`);
-        const list = install.split("\n");
+        const list = install.split("\n").filter((m) => m.trim().length > 0);
 
         let cmd = [...CMD_install]; /* clone array */
         cmd = cmd.concat(list);

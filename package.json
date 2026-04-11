@@ -4,7 +4,7 @@
   "description": "Install Perl modules with App::cpm",
   "main": "index.js",
   "scripts": {
-    "lint": "eslint index.js",
+    "lint": "eslint index.js lib.js",
     "test": "jest",
     "build": "ncc build index.js",
     "pretty": "js-beautify -r index.js"
