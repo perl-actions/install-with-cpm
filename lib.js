@@ -141,6 +141,7 @@ async function run() {
     const args = core.getInput("args");
     const verbose = core.getInput("verbose");
     const workers = core.getInput("workers");
+    const mirror = core.getInput("mirror");
     const snapshot = core.getInput("snapshot");
 
     const w_tests = is_true(tests) ? "--test" : "--no-test";
@@ -164,6 +165,9 @@ async function run() {
     }
     if (workers !== null && workers.length) {
         CMD_install.push("--workers", workers);
+    }
+    if (mirror !== null && mirror.length) {
+        CMD_install.push("--mirror", mirror);
     }
     if (snapshot !== null && snapshot.length) {
         CMD_install.push("--snapshot", snapshot);
