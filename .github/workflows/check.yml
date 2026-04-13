@@ -207,6 +207,69 @@ jobs:
           args: '--with-recommends --with-suggests'
       - run: perl -MSimple::Accessor -e1
 
+  ### ------------------------------------------------
+  ### Install with workers flag
+  ### ------------------------------------------------
+
+  with_workers:
+    runs-on: ubuntu-latest
+    name: 'cpm with workers'
+    steps:
+      - uses: actions/checkout@v6
+      - name: uses install-with-cpm
+        uses: ./
+        with:
+          install: 'Simple::Accessor'
+          workers: 5
+      - run: perl -MSimple::Accessor -e1
+
+  ### ------------------------------------------------
+  ### Install with custom mirror
+  ### ------------------------------------------------
+
+  with_mirror:
+    runs-on: ubuntu-latest
+    name: 'cpm with mirror'
+    steps:
+      - uses: actions/checkout@v6
+      - name: uses install-with-cpm
+        uses: ./
+        with:
+          install: 'Simple::Accessor'
+          mirror: 'https://cpan.metacpan.org/'
+      - run: perl -MSimple::Accessor -e1
+
+  ### ------------------------------------------------
+  ### Install with snapshot opt-in
+  ### ------------------------------------------------
+
+  with_snapshot:
+    runs-on: ubuntu-latest
+    name: 'cpanfile + snapshot opt-in'
+    steps:
+      - uses: actions/checkout@v6
+      - name: 'Create cpanfile and valid snapshot'
+        run: |
+          echo "requires 'Simple::Accessor', '1.01';" > cpanfile
+          echo "# carton snapshot format: version 1.0" > cpanfile.snapshot
+          echo "DISTRIBUTIONS" >> cpanfile.snapshot
+          echo "  Simple-Accessor-1.13" >> cpanfile.snapshot
+          echo "    pathname: S/SU/SUKRIA/Simple-Accessor-1.13.tar.gz" >> cpanfile.snapshot
+          echo "    provides:" >> cpanfile.snapshot
+          echo "      Simple::Accessor 1.13" >> cpanfile.snapshot
+          echo "    requirements:" >> cpanfile.snapshot
+          echo "      ExtUtils::MakeMaker 0" >> cpanfile.snapshot
+      - name: Install Carton::Snapshot
+        uses: ./
+        with:
+          install: 'Carton::Snapshot'
+      - name: Install with snapshot
+        uses: ./
+        with:
+          cpanfile: 'cpanfile'
+          snapshot: 'cpanfile.snapshot'
+      - run: perl -MSimple::Accessor -e1
+
   ## ------------------------------------------------
   ## testing with windows
   ## ------------------------------------------------
