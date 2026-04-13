@@ -638,6 +638,113 @@ describe("run", () => {
         expect(allArgs).toContain("DBD::SQLite");
     });
 
+    test("filters empty entries from trailing newlines in install input", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose\nDBI\n",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+        });
+
+        await lib.run();
+
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+
+        expect(allArgs).toContain("Moose");
+        expect(allArgs).toContain("DBI");
+        // Module list should only contain the two valid modules
+        const moduleArgs = allArgs.slice(allArgs.indexOf("DBI"));
+        expect(moduleArgs).toEqual(["DBI"]);
+    });
+
+    test("filters blank lines from install input", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose\n\n\nDBI",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+        });
+
+        await lib.run();
+
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+
+        expect(allArgs).toContain("Moose");
+        expect(allArgs).toContain("DBI");
+        // Only 2 modules, no empty strings between them
+        const mooseIdx = allArgs.indexOf("Moose");
+        expect(allArgs.slice(mooseIdx)).toEqual(["Moose", "DBI"]);
+    });
+
+    test("trims whitespace from module names", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "  Moose  \n  DBI  ",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+        });
+
+        await lib.run();
+
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+
+        expect(allArgs).toContain("Moose");
+        expect(allArgs).toContain("DBI");
+        expect(allArgs).not.toContain("  Moose  ");
+        expect(allArgs).not.toContain("  DBI  ");
+    });
+
+    test("filters empty entries from args with leading/trailing spaces", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "  --with-recommends  --with-suggests  ",
+            verbose: "false",
+            sudo: "false",
+        });
+
+        await lib.run();
+
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+
+        expect(allArgs).toContain("--with-recommends");
+        expect(allArgs).toContain("--with-suggests");
+        // Args should not contain empty strings from leading/trailing whitespace
+        const argsAfterSnapshot = allArgs.slice(allArgs.indexOf("--with-recommends"));
+        expect(argsAfterSnapshot).toEqual(["--with-recommends", "--with-suggests", "Moose"]);
+    });
+
     test("propagates download errors", async () => {
         mockInputs({
             perl: "perl",
