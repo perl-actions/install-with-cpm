@@ -148,7 +148,7 @@ async function run() {
     let w_args = [];
 
     if (args !== null && args.length) {
-        w_args = args.split(/\s+/);
+        w_args = args.split(/\s+/).filter(Boolean);
     }
 
     /* base CMD_install command */
@@ -187,7 +187,7 @@ async function run() {
     if (install !== null && install.length) {
         // install one or more modules
         core.info(`install: ${install}!`);
-        const list = install.split("\n");
+        const list = install.split("\n").map(s => s.trim()).filter(Boolean);
 
         let cmd = [...CMD_install]; /* clone array */
         cmd = cmd.concat(list);
