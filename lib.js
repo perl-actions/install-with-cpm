@@ -25,9 +25,33 @@ async function install_cpm_location() {
     return path.resolve(out);
 }
 
+// Refs we can prove are immutable (named tags or commit SHAs).
+// Anything else (branch names like "main", "master", "dev") is treated
+// as mutable so the cache key rotates daily and picks up upstream updates.
+const IMMUTABLE_REF_PATTERNS = [
+    /^v?\d+(\.\d+)+$/, // semver-like tags: 1.0, v1.0, 0.997014
+    /^[a-f0-9]{7,40}$/i, // short or full commit SHA
+];
+
+function is_immutable_ref(ref) {
+    if (!ref) return false;
+    return IMMUTABLE_REF_PATTERNS.some((pat) => pat.test(ref));
+}
+
+function _today_utc() {
+    // YYYY-MM-DD in UTC so workers in different timezones share the same key.
+    return new Date().toISOString().slice(0, 10);
+}
+
 function cpm_cache_key() {
     const version = core.getInput("version");
-    return `cpm-script-${version}-${os.platform()}`;
+    const base = `cpm-script-${version}-${os.platform()}`;
+    if (is_immutable_ref(version)) {
+        return base;
+    }
+    // Mutable ref (e.g. "main"): include daily UTC date so the cache rotates
+    // and we don't pin users to a stale cpm forever.
+    return `${base}-${_today_utc()}`;
 }
 
 function cpm_cache_dir() {
@@ -227,6 +251,7 @@ module.exports = {
     install_cpm,
     cpm_cache_key,
     cpm_cache_dir,
+    is_immutable_ref,
     run,
     // Expose PERL setter for testing
     set_perl(p) { PERL = p; },
