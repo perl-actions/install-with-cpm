@@ -71,6 +71,11 @@ jobs:
       - run: make test
 ```
 
+## Compatibility
+
+This action uses the **Node.js 24** GitHub Actions runtime (`node24`).
+Users of `@v2` get Node.js 24 support. If you are still on `@stable` or `@v1`, upgrade to `@v2` — older tags reference a pre-node24 version.
+
 ## Inputs
 
 ### `install`

@@ -3,6 +3,9 @@
   "version": "1.6.0",
   "description": "Install Perl modules with App::cpm",
   "main": "index.js",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "lint": "eslint index.js lib.js lib.test.js",
     "test": "jest",
