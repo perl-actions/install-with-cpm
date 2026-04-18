@@ -908,8 +908,29 @@ describe("install_cpm_location with backslash path", () => {
     });
 });
 
+describe("is_immutable_ref", () => {
+    test.each([
+        ["0.997014", true],
+        ["0.990", true],
+        ["1.0", true],
+        ["v1.0", true],
+        ["v2.5.3", true],
+        ["abc1234", true], // short SHA
+        ["a".repeat(40), true], // full SHA
+        ["main", false],
+        ["master", false],
+        ["dev", false],
+        ["release/2.0", false],
+        ["", false],
+        [null, false],
+        [undefined, false],
+    ])("is_immutable_ref(%p) → %p", (input, expected) => {
+        expect(lib.is_immutable_ref(input)).toBe(expected);
+    });
+});
+
 describe("cpm_cache_key", () => {
-    test("includes version and platform", () => {
+    test("immutable ref (semver tag): plain key, no date suffix", () => {
         core.getInput.mockImplementation((name) => {
             if (name === "version") return "0.997014";
             return "";
@@ -919,14 +940,65 @@ describe("cpm_cache_key", () => {
         expect(lib.cpm_cache_key()).toBe("cpm-script-0.997014-linux");
     });
 
-    test("uses main version by default", () => {
+    test("immutable ref (commit SHA): plain key, no date suffix", () => {
+        const sha = "deadbeefcafebabe1234567890abcdef12345678";
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return sha;
+            return "";
+        });
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+
+        expect(lib.cpm_cache_key()).toBe(`cpm-script-${sha}-linux`);
+    });
+
+    test("mutable ref (branch): key gets daily UTC date suffix", () => {
         core.getInput.mockImplementation((name) => {
             if (name === "version") return "main";
             return "";
         });
         jest.spyOn(os, "platform").mockReturnValue("darwin");
 
-        expect(lib.cpm_cache_key()).toBe("cpm-script-main-darwin");
+        const today = new Date().toISOString().slice(0, 10);
+        expect(lib.cpm_cache_key()).toBe(`cpm-script-main-darwin-${today}`);
+    });
+
+    test("mutable ref: key changes when day changes", () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            return "";
+        });
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+
+        const realDate = Date;
+        try {
+            global.Date = class extends realDate {
+                constructor() {
+                    super();
+                    return new realDate("2026-01-15T10:00:00Z");
+                }
+                static now() {
+                    return new realDate("2026-01-15T10:00:00Z").getTime();
+                }
+            };
+            const day1 = lib.cpm_cache_key();
+
+            global.Date = class extends realDate {
+                constructor() {
+                    super();
+                    return new realDate("2026-01-16T10:00:00Z");
+                }
+                static now() {
+                    return new realDate("2026-01-16T10:00:00Z").getTime();
+                }
+            };
+            const day2 = lib.cpm_cache_key();
+
+            expect(day1).toBe("cpm-script-main-linux-2026-01-15");
+            expect(day2).toBe("cpm-script-main-linux-2026-01-16");
+            expect(day1).not.toBe(day2);
+        } finally {
+            global.Date = realDate;
+        }
     });
 });
 
@@ -945,11 +1017,11 @@ describe("install_cpm caching", () => {
 
     test("skips download on cache hit", async () => {
         core.getInput.mockImplementation((name) => {
-            if (name === "version") return "main";
+            if (name === "version") return "0.997014";
             if (name === "sudo") return "false";
             return "";
         });
-        cache.restoreCache.mockResolvedValue("cpm-script-main-linux");
+        cache.restoreCache.mockResolvedValue("cpm-script-0.997014-linux");
         exec.exec.mockResolvedValue(0);
 
         await lib.install_cpm("/usr/local/bin/cpm");
@@ -963,7 +1035,7 @@ describe("install_cpm caching", () => {
 
     test("downloads and saves cache on cache miss", async () => {
         core.getInput.mockImplementation((name) => {
-            if (name === "version") return "main";
+            if (name === "version") return "0.997014";
             if (name === "sudo") return "false";
             return "";
         });
@@ -976,12 +1048,33 @@ describe("install_cpm caching", () => {
         await lib.install_cpm("/usr/local/bin/cpm");
 
         expect(tc.downloadTool).toHaveBeenCalledWith(
-            "https://raw.githubusercontent.com/skaji/cpm/main/cpm"
+            "https://raw.githubusercontent.com/skaji/cpm/0.997014/cpm"
         );
         expect(io.mkdirP).toHaveBeenCalled();
         expect(cache.saveCache).toHaveBeenCalledWith(
             [lib.cpm_cache_dir()],
-            "cpm-script-main-linux"
+            "cpm-script-0.997014-linux"
+        );
+    });
+
+    test("mutable ref cache miss saves with daily-rotated key", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "sudo") return "false";
+            return "";
+        });
+        cache.restoreCache.mockResolvedValue(undefined);
+        tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
+        exec.exec.mockResolvedValue(0);
+        io.cp.mockResolvedValue();
+        io.mkdirP.mockResolvedValue();
+
+        await lib.install_cpm("/usr/local/bin/cpm");
+
+        const today = new Date().toISOString().slice(0, 10);
+        expect(cache.saveCache).toHaveBeenCalledWith(
+            [lib.cpm_cache_dir()],
+            `cpm-script-main-linux-${today}`
         );
     });
 
