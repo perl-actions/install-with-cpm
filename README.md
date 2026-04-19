@@ -163,9 +163,27 @@ Which version/tag of `cpm` to install. Default is 'main' to use the latest versi
 
 ## Outputs
 
-none
+### `cpm-path`
+
+Absolute path where cpm was installed. Useful for referencing cpm in subsequent steps.
+
+### `cache-hit`
+
+`"true"` if the cpm script was restored from cache, `"false"` if it was freshly downloaded.
 
 ## Example usage
+
+### Using outputs
+
+```yaml
+- name: install cpm
+  id: cpm
+  uses: perl-actions/install-with-cpm@v2
+  with:
+    install: "Simple::Accessor"
+- name: show cpm path
+  run: echo "cpm installed at ${{ steps.cpm.outputs.cpm-path }}"
+```
 
 ### Install cpm
 

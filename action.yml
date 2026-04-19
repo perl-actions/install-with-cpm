@@ -65,6 +65,12 @@ inputs:
     required: false
     default: "main"
 
+outputs:
+  cpm-path:
+    description: "Absolute path where cpm was installed"
+  cache-hit:
+    description: "Whether the cpm script was restored from cache (true/false)"
+
 runs:
   using: "node24"
   main: "dist/index.js"

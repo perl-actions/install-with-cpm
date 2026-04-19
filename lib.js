@@ -119,7 +119,7 @@ async function install_cpm(install_to) {
         ]);
     }
 
-    return install_to;
+    return { path: install_to, cacheHit };
 }
 
 async function which_perl() {
@@ -155,7 +155,10 @@ async function run() {
 
     const cpm_location = await install_cpm_location();
 
-    await install_cpm(cpm_location);
+    const { cacheHit } = await install_cpm(cpm_location);
+
+    core.setOutput("cpm-path", cpm_location);
+    core.setOutput("cache-hit", String(cacheHit));
 
     // input arguments
     const install = core.getInput("install");

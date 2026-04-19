@@ -178,7 +178,7 @@ describe("install_cpm", () => {
             "https://raw.githubusercontent.com/skaji/cpm/main/cpm"
         );
         expect(exec.exec).toHaveBeenCalled();
-        expect(result).toBe("/usr/local/bin/cpm");
+        expect(result).toEqual({ path: "/usr/local/bin/cpm", cacheHit: false });
     });
 
     test("uses io.cp on win32", async () => {
@@ -190,12 +190,13 @@ describe("install_cpm", () => {
         io.cp.mockResolvedValue();
         jest.spyOn(os, "platform").mockReturnValue("win32");
 
-        await lib.install_cpm("/usr/local/bin/cpm");
+        const result = await lib.install_cpm("/usr/local/bin/cpm");
 
         expect(io.cp).toHaveBeenCalledWith(
             "/tmp/cpm-downloaded",
             "/usr/local/bin/cpm"
         );
+        expect(result).toEqual({ path: "/usr/local/bin/cpm", cacheHit: false });
     });
 });
 
@@ -745,6 +746,49 @@ describe("run", () => {
         expect(argsAfterSnapshot).toEqual(["--with-recommends", "--with-suggests", "Moose"]);
     });
 
+    test("sets cpm-path and cache-hit outputs", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+        });
+
+        await lib.run();
+
+        expect(core.setOutput).toHaveBeenCalledWith(
+            "cpm-path",
+            path.resolve("/usr/local/bin/cpm")
+        );
+        expect(core.setOutput).toHaveBeenCalledWith("cache-hit", "false");
+    });
+
+    test("sets cache-hit output to true on cache hit", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "0.997014",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+        });
+        cache.restoreCache.mockResolvedValue("cpm-script-0.997014-linux");
+
+        await lib.run();
+
+        expect(core.setOutput).toHaveBeenCalledWith("cache-hit", "true");
+    });
+
     test("propagates download errors", async () => {
         mockInputs({
             perl: "perl",
@@ -1024,13 +1068,14 @@ describe("install_cpm caching", () => {
         cache.restoreCache.mockResolvedValue("cpm-script-0.997014-linux");
         exec.exec.mockResolvedValue(0);
 
-        await lib.install_cpm("/usr/local/bin/cpm");
+        const result = await lib.install_cpm("/usr/local/bin/cpm");
 
         expect(tc.downloadTool).not.toHaveBeenCalled();
         expect(cache.saveCache).not.toHaveBeenCalled();
         expect(core.info).toHaveBeenCalledWith(
             expect.stringContaining("Cache hit")
         );
+        expect(result.cacheHit).toBe(true);
     });
 
     test("downloads and saves cache on cache miss", async () => {
@@ -1045,7 +1090,7 @@ describe("install_cpm caching", () => {
         io.cp.mockResolvedValue();
         io.mkdirP.mockResolvedValue();
 
-        await lib.install_cpm("/usr/local/bin/cpm");
+        const result = await lib.install_cpm("/usr/local/bin/cpm");
 
         expect(tc.downloadTool).toHaveBeenCalledWith(
             "https://raw.githubusercontent.com/skaji/cpm/0.997014/cpm"
@@ -1055,6 +1100,7 @@ describe("install_cpm caching", () => {
             [lib.cpm_cache_dir()],
             "cpm-script-0.997014-linux"
         );
+        expect(result.cacheHit).toBe(false);
     });
 
     test("mutable ref cache miss saves with daily-rotated key", async () => {
