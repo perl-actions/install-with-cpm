@@ -181,6 +181,34 @@ describe("install_cpm", () => {
         expect(result).toBe("/usr/local/bin/cpm");
     });
 
+    test("passes paths via @ARGV, not string interpolation", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "sudo") return "false";
+            return "";
+        });
+        tc.downloadTool.mockResolvedValue('/tmp/cpm "$pecial');
+        exec.exec.mockResolvedValue(0);
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+        lib.set_perl("/usr/bin/perl");
+
+        await lib.install_cpm('/usr/local/bin/"cpm');
+
+        // Find the copy+chmod exec call (not the first which is install_cpm_location)
+        const copyCall = exec.exec.mock.calls.find(
+            (call) => call[1] && call[1].includes("-MFile::Copy=cp")
+        );
+        expect(copyCall).toBeDefined();
+        const args = copyCall[1];
+        // The -e script must be a static string (no interpolated paths)
+        expect(args[2]).toBe(
+            "cp($ARGV[0], $ARGV[1]); chmod(0755, $ARGV[1])"
+        );
+        // Paths passed as separate arguments, not embedded in the script
+        expect(args[3]).toBe('/tmp/cpm "$pecial');
+        expect(args[4]).toBe('/usr/local/bin/"cpm');
+    });
+
     test("uses io.cp on win32", async () => {
         core.getInput.mockImplementation((name) => {
             if (name === "version") return "main";
