@@ -153,7 +153,7 @@ describe("install_cpm_location", () => {
 
         expect(exec.exec).toHaveBeenCalledWith(
             "/usr/bin/perl",
-            ["-MConfig", "-e", 'print "$Config{installsitescript}/cpm"'],
+            ["-MConfig", "-e", "print eval($ARGV[0])", "$Config{installsitescript}/cpm"],
             expect.any(Object)
         );
         expect(result).toBe(path.resolve("/usr/local/bin/cpm"));
@@ -958,8 +958,32 @@ describe("do_exec mutation", () => {
     });
 });
 
-describe("install_cpm_location with backslash path", () => {
-    test("escapes backslashes in path input", async () => {
+describe("install_cpm_location path safety", () => {
+    test("passes path expression via ARGV, not string interpolation", async () => {
+        // A path containing a double-quote would break out of the Perl string if interpolated.
+        // It must be passed as $ARGV[0] and eval'd inside Perl instead.
+        core.getInput.mockImplementation((name) => {
+            if (name === "path") return '$Config{installsitescript}/"evil"';
+            return "";
+        });
+        exec.exec.mockImplementation(async (bin, args, options) => {
+            if (options && options.listeners && options.listeners.stdout) {
+                options.listeners.stdout(Buffer.from("/usr/local/bin/cpm"));
+            }
+            return 0;
+        });
+        lib.set_perl("/usr/bin/perl");
+
+        await lib.install_cpm_location();
+
+        const execArgs = exec.exec.mock.calls[0][1];
+        // The -e script must be static — no path embedded inside it
+        expect(execArgs[2]).not.toContain('"evil"');
+        // The raw path expression must be passed as a separate argument (ARGV[0])
+        expect(execArgs[3]).toBe('$Config{installsitescript}/"evil"');
+    });
+
+    test("passes backslash path as ARGV without escaping", async () => {
         core.getInput.mockImplementation((name) => {
             if (name === "path") return "C:\\Perl\\bin\\cpm";
             return "";
@@ -974,9 +998,9 @@ describe("install_cpm_location with backslash path", () => {
 
         await lib.install_cpm_location();
 
-        // The path should have backslashes escaped for Perl string interpolation
-        const execArgs = exec.exec.mock.calls[0];
-        expect(execArgs[1][2]).toBe('print "C:\\\\Perl\\\\bin\\\\cpm"');
+        const execArgs = exec.exec.mock.calls[0][1];
+        // Path passed verbatim as ARGV[0], no backslash doubling needed
+        expect(execArgs[3]).toBe("C:\\Perl\\bin\\cpm");
     });
 });
 

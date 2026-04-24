@@ -19,8 +19,8 @@ async function install_cpm_location() {
         },
     };
 
-    const p = core.getInput("path").replace(/\\/g, "\\\\");
-    await exec.exec(PERL, ["-MConfig", "-e", `print "${p}"`], options);
+    const p = core.getInput("path");
+    await exec.exec(PERL, ["-MConfig", "-e", "print eval($ARGV[0])", p], options);
 
     return path.resolve(out);
 }
