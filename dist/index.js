@@ -62,6 +62,8 @@ function cpm_cache_dir() {
     return path.join(os.tmpdir(), "cpm-cache");
 }
 
+const MAX_RETRY_DELAY_S = 300;
+
 const VERSION_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
 
 async function install_cpm(perl, install_to) {
@@ -181,7 +183,7 @@ async function do_exec(cmd) {
             throw err;
         }
 
-        const wait_s = retry_wait * attempt;
+        const wait_s = Math.min(retry_wait * attempt, MAX_RETRY_DELAY_S);
         core.warning(
             `cpm attempt ${attempt}/${max_attempts} failed (${err.message || err}); ` +
             `retrying in ${wait_s}s...`
@@ -310,6 +312,7 @@ module.exports = {
     is_immutable_ref,
     run,
     // Exposed for testing
+    MAX_RETRY_DELAY_S,
     _parse_non_negative_int,
     _sleep_ms,
 };

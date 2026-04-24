@@ -1184,6 +1184,33 @@ describe("do_exec retry", () => {
         expect(exec.exec).toHaveBeenCalledTimes(3);
     });
 
+    test("caps per-attempt delay at MAX_RETRY_DELAY_S", async () => {
+        // retry-wait=200, attempt 2 → 400s uncapped, should be capped to 300s
+        mockInputs({ sudo: "false", retries: "2", "retry-wait": "200" });
+        exec.exec
+            .mockRejectedValueOnce(new Error("fail"))
+            .mockRejectedValueOnce(new Error("fail"))
+            .mockRejectedValueOnce(new Error("fail"));
+
+        await expect(lib.do_exec(["cpm", "install"])).rejects.toThrow("fail");
+
+        // attempt 1: min(200*1, 300) = 200s
+        expect(lib._sleep_ms).toHaveBeenNthCalledWith(1, 200 * 1000);
+        // attempt 2: min(200*2, 300) = 300s (capped)
+        expect(lib._sleep_ms).toHaveBeenNthCalledWith(2, lib.MAX_RETRY_DELAY_S * 1000);
+    });
+
+    test("delay never exceeds MAX_RETRY_DELAY_S even with very high retry-wait", async () => {
+        mockInputs({ sudo: "false", retries: "1", "retry-wait": "9999" });
+        exec.exec
+            .mockRejectedValueOnce(new Error("fail"))
+            .mockResolvedValueOnce(0);
+
+        await lib.do_exec(["cpm", "install"]);
+
+        expect(lib._sleep_ms).toHaveBeenCalledWith(lib.MAX_RETRY_DELAY_S * 1000);
+    });
+
     test("negative retries input falls back to default", async () => {
         mockInputs({ sudo: "false", retries: "-1" });
         exec.exec.mockRejectedValue(new Error("boom"));
