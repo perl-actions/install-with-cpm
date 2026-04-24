@@ -236,6 +236,12 @@ async function run() {
         CMD_install.push("--workers", workers);
     }
     if (mirror.length) {
+        if (!/^https?:\/\//i.test(mirror)) {
+            core.setFailed(
+                `Invalid mirror URL: "${mirror}". Must start with http:// or https://.`
+            );
+            return;
+        }
         CMD_install.push("--mirror", mirror);
     }
     if (snapshot.length) {
