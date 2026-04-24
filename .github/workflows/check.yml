@@ -118,8 +118,19 @@ jobs:
       - uses: actions/checkout@v6
       - name: 'Create cpanfile and cpanfile.snapshot'
         run: |
-          echo "requires 'Simple::Accessor';" > cpanfile
-          echo '# carton snapshot format: version 1.0' > cpanfile.snapshot
+          echo "requires 'Simple::Accessor', '1.01';" > cpanfile
+          echo "# carton snapshot format: version 1.0" > cpanfile.snapshot
+          echo "DISTRIBUTIONS" >> cpanfile.snapshot
+          echo "  Simple-Accessor-1.14" >> cpanfile.snapshot
+          echo "    pathname: A/AT/ATOOMIC/Simple-Accessor-1.14.tar.gz" >> cpanfile.snapshot
+          echo "    provides:" >> cpanfile.snapshot
+          echo "      Simple::Accessor 1.14" >> cpanfile.snapshot
+          echo "    requirements:" >> cpanfile.snapshot
+          echo "      ExtUtils::MakeMaker 0" >> cpanfile.snapshot
+      - name: Install Carton::Snapshot
+        uses: ./
+        with:
+          install: 'Carton::Snapshot'
       - name: uses install-with-cpm
         uses: ./
         with:
