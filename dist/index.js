@@ -248,6 +248,13 @@ async function run() {
         has_run = true;
         await do_exec(cmd);
     }
+
+    if (!has_run) {
+        core.warning(
+            "Nothing to install: no 'install' modules, no 'cpanfile', and no 'args' provided. " +
+            "Please set at least one of these inputs."
+        );
+    }
 }
 
 module.exports = {

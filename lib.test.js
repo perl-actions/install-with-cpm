@@ -591,7 +591,7 @@ describe("run", () => {
         expect(cpanfileCall).toBeDefined();
     });
 
-    test("does nothing when no install, cpanfile, or args provided", async () => {
+    test("warns when no install, cpanfile, or args provided", async () => {
         mockInputs({
             perl: "perl",
             path: "$Config{installsitescript}/cpm",
@@ -607,12 +607,35 @@ describe("run", () => {
 
         await lib.run();
 
-        // Only exec calls should be for install_cpm_location and install_cpm setup
-        // No "custom run with args" or module install should happen
+        // No install command should have been executed
         expect(core.info).not.toHaveBeenCalledWith(
             expect.stringContaining("install:")
         );
         expect(core.info).not.toHaveBeenCalledWith("custom run with args");
+
+        // Should emit a warning about empty inputs
+        expect(core.warning).toHaveBeenCalledWith(
+            expect.stringContaining("Nothing to install")
+        );
+    });
+
+    test("does not warn when install input is provided", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+        });
+
+        await lib.run();
+
+        expect(core.warning).not.toHaveBeenCalled();
     });
 
     test("uses correct cpm download URL for custom version", async () => {
