@@ -151,7 +151,12 @@ describe("install_cpm_location", () => {
 
         expect(exec.exec).toHaveBeenCalledWith(
             "/usr/bin/perl",
-            ["-MConfig", "-e", 'print "$Config{installsitescript}/cpm"'],
+            [
+                "-MConfig",
+                "-e",
+                'my $p = $ARGV[0]; $p =~ s/\\$Config\\{(\\w+)\\}/$Config{$1}/ge; print $p',
+                "$Config{installsitescript}/cpm",
+            ],
             expect.any(Object)
         );
         expect(result).toBe(path.resolve("/usr/local/bin/cpm"));
