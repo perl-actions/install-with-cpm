@@ -88,55 +88,6 @@ function verify_checksum(filePath, expected) {
     return actual;
 }
 
-/**
- * Split a string into arguments respecting single and double quotes.
- * Backslash escapes work inside double-quoted segments.
- * Unquoted tokens are split on whitespace.
- */
-function split_args(input) {
-    const args = [];
-    let current = "";
-    let i = 0;
-
-    while (i < input.length) {
-        const ch = input[i];
-
-        if (ch === '"') {
-            // Double-quoted segment: backslash escapes the next char
-            i++;
-            while (i < input.length && input[i] !== '"') {
-                if (input[i] === "\\" && i + 1 < input.length) {
-                    i++;
-                }
-                current += input[i];
-                i++;
-            }
-            i++; // skip closing quote
-        } else if (ch === "'") {
-            // Single-quoted segment: no escaping, everything is literal
-            i++;
-            while (i < input.length && input[i] !== "'") {
-                current += input[i];
-                i++;
-            }
-            i++; // skip closing quote
-        } else if (/\s/.test(ch)) {
-            if (current.length) {
-                args.push(current);
-                current = "";
-            }
-            i++;
-        } else {
-            current += ch;
-            i++;
-        }
-    }
-    if (current.length) {
-        args.push(current);
-    }
-    return args;
-}
-
 const VERSION_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
 
 async function install_cpm(perl, install_to) {
@@ -295,7 +246,7 @@ async function run() {
     let w_args = [];
 
     if (args.length) {
-        w_args = split_args(args);
+        w_args = args.split("\n").map((s) => s.trim()).filter(Boolean);
     }
 
     /* base CMD_install command */
@@ -407,7 +358,6 @@ module.exports = {
     cpm_cache_key,
     cpm_cache_dir,
     is_immutable_ref,
-    split_args,
     run,
     // Exposed for testing
     MAX_RETRY_DELAY_S,

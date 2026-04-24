@@ -23,7 +23,7 @@ inputs:
     default: true
 
   args:
-    description: "Extra args passed to the install command. Supports shell-style quoting (single and double quotes) for values that contain spaces."
+    description: "Extra args passed to the install command, one per line (newline-delimited, like the install input). This allows argument values containing spaces."
     required: false
 
   sudo:

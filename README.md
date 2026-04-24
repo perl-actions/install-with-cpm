@@ -96,20 +96,21 @@ Possible values: true | false [default: true]
 ### `args`
 
 Extra arguments to pass to the cpm command line.
-Shell-style quoting is supported: use single or double quotes for values that contain spaces.
+Arguments are newline-delimited (one per line), which allows values that contain spaces.
 
 You can also use this option to run your own flavor
 without the need of setting `install` or `cpanfile`.
 ```yaml
-args: "--installdeps ."
+args: |
+  --installdeps
+  .
 ```
 
-**Quoting examples:**
+**Values with spaces:**
 ```yaml
-# Double quotes for values with spaces
-args: '--man-pages --configure-arg "--prefix=/opt/my app"'
-# Single quotes
-args: "--option 'value with spaces'"
+args: |
+  --configure-arg
+  --prefix=/opt/my app
 ```
 
 ### `sudo`
@@ -321,7 +322,9 @@ Disable the `-g` flag.
   uses: perl-actions/install-with-cpm@v2
   with:
     cpanfile: "your-cpanfile"
-    args: "--with-recommends --with-suggests"
+    args: |
+      --with-recommends
+      --with-suggests
 ```
 
 Here is an extract of the possible args to use to control groups
