@@ -515,7 +515,7 @@ describe("run", () => {
         expect(allArgs).toContain("cpanfile.snapshot");
     });
 
-    test("passes empty snapshot when not provided (opt-out)", async () => {
+    test("does not pass --snapshot when snapshot is empty", async () => {
         mockInputs({
             perl: "perl",
             path: "$Config{installsitescript}/cpm",
@@ -536,10 +536,8 @@ describe("run", () => {
         const lastCall = calls[calls.length - 1];
         const allArgs = [lastCall[0], ...lastCall[1]];
 
-        // When snapshot is empty, --snapshot "" should be passed to disable it
-        const snapshotIdx = allArgs.indexOf("--snapshot");
-        expect(snapshotIdx).toBeGreaterThan(-1);
-        expect(allArgs[snapshotIdx + 1]).toBe("");
+        // When snapshot is empty, --snapshot should not be passed at all
+        expect(allArgs).not.toContain("--snapshot");
     });
 
     test("does not add -g flag when global is false", async () => {
