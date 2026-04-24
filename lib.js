@@ -176,7 +176,7 @@ async function run() {
     const w_tests = is_true(tests) ? "--test" : "--no-test";
     let w_args = [];
 
-    if (args !== null && args.length) {
+    if (args.length) {
         w_args = args.split(/\s+/).filter(Boolean);
     }
 
@@ -192,13 +192,13 @@ async function run() {
     if (is_true(verbose)) {
         CMD_install.push("-v");
     }
-    if (workers !== null && workers.length) {
+    if (workers.length) {
         CMD_install.push("--workers", workers);
     }
-    if (mirror !== null && mirror.length) {
+    if (mirror.length) {
         CMD_install.push("--mirror", mirror);
     }
-    if (snapshot !== null && snapshot.length) {
+    if (snapshot.length) {
         CMD_install.push("--snapshot", snapshot);
     } else {
         CMD_install.push("--snapshot", "");
@@ -213,7 +213,7 @@ async function run() {
     let has_run = false;
 
     /* install one ore more modules */
-    if (install !== null && install.length) {
+    if (install.length) {
         // install one or more modules
         core.info(`install: ${install}!`);
         const list = install.split("\n").map(s => s.trim()).filter(Boolean);
@@ -226,7 +226,7 @@ async function run() {
     }
 
     /* install from cpanfile */
-    if (cpanfile !== null && cpanfile.length) {
+    if (cpanfile.length) {
         // install one or more modules
         core.info(`cpanfile: ${cpanfile}!`);
         const cpanfile_full_path = path.resolve(cpanfile);
