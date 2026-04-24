@@ -65,6 +65,15 @@ inputs:
     required: false
     default: "main"
 
+  checksum:
+    description: >
+      Expected SHA-256 hex digest of the cpm script. When set, the action
+      verifies the downloaded (or cached) script matches this hash before
+      installation and fails if there is a mismatch.  Leave empty to skip
+      verification (the computed hash is still logged for auditability).
+    required: false
+    default: ""
+
   retries:
     description: >
       Number of additional attempts after a cpm failure. 0 disables the

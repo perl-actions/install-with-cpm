@@ -4,6 +4,7 @@ const tc = require("@actions/tool-cache");
 const exec = require("@actions/exec");
 const io = require("@actions/io");
 
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
@@ -68,10 +69,30 @@ function cpm_cache_dir() {
 
 const MAX_RETRY_DELAY_S = 300;
 
+function compute_sha256(filePath) {
+    const content = fs.readFileSync(filePath);
+    return crypto.createHash("sha256").update(content).digest("hex");
+}
+
+function verify_checksum(filePath, expected) {
+    const actual = compute_sha256(filePath);
+    core.info(`cpm SHA-256: ${actual}`);
+    if (expected && actual !== expected.toLowerCase()) {
+        throw new Error(
+            `Checksum mismatch for cpm script.\n` +
+            `  Expected: ${expected.toLowerCase()}\n` +
+            `  Actual:   ${actual}\n` +
+            `This may indicate a corrupted download or a tampered file.`
+        );
+    }
+    return actual;
+}
+
 const VERSION_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
 
 async function install_cpm(perl, install_to) {
     const version = core.getInput("version");
+    const checksum = core.getInput("checksum");
 
     if (!version || !VERSION_PATTERN.test(version) || version.includes("..")) {
         throw new Error(
@@ -113,6 +134,9 @@ async function install_cpm(perl, install_to) {
             core.info(`Cache save failed (non-fatal): ${e.message}`);
         }
     }
+
+    // Verify integrity before copying to install location
+    verify_checksum(cpmScript, checksum);
 
     core.info(`Install cpm to: ${install_to}`);
 
@@ -339,4 +363,6 @@ module.exports = {
     MAX_RETRY_DELAY_S,
     _parse_non_negative_int,
     _sleep_ms,
+    compute_sha256,
+    verify_checksum,
 };
