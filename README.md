@@ -161,6 +161,32 @@ snapshot: "cpanfile.snapshot"
 
 Which version/tag of `cpm` to install. Default is 'main' to use the latest version.
 
+### `retries`
+
+Number of additional attempts after a cpm failure. The action wraps the
+cpm invocation in a retry loop so transient upstream failures (for
+example metacpan `599 Internal Exception` / `Connection timed out` from
+`cpan.metacpan.org:443`) do not flake the job.
+
+Default: `2` (so cpm is tried up to 3 times). Set to `0` to disable and
+restore the single-attempt historical behavior.
+
+```yaml
+- uses: perl-actions/install-with-cpm@v2
+  with:
+    cpanfile: "cpanfile"
+    retries: 3
+```
+
+### `retry-wait`
+
+Base delay (in seconds) between retry attempts. Applied with **linear
+backoff** — attempt N waits `retry-wait * N` seconds before the next
+attempt. With the default values (`retries: 2`, `retry-wait: 20`) the
+waits are 20 s, then 40 s.
+
+Default: `20`.
+
 ## Caching
 
 The action caches the downloaded `cpm` script using [`@actions/cache`](https://github.com/actions/toolkit/tree/main/packages/cache)

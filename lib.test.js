@@ -1007,6 +1007,121 @@ describe("do_exec mutation", () => {
     });
 });
 
+describe("do_exec retry", () => {
+    // Stub out the real setTimeout-based sleep so tests don't actually wait.
+    let sleep_spy;
+    beforeEach(() => {
+        sleep_spy = jest
+            .spyOn(lib, "_sleep_ms")
+            .mockImplementation(() => Promise.resolve());
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+    });
+    afterEach(() => {
+        sleep_spy.mockRestore();
+    });
+
+    function mockInputs(inputs) {
+        core.getInput.mockImplementation((name) =>
+            inputs[name] !== undefined ? inputs[name] : ""
+        );
+    }
+
+    test("succeeds on first attempt: no retry, no sleep", async () => {
+        mockInputs({ sudo: "false", retries: "2", "retry-wait": "20" });
+        exec.exec.mockResolvedValue(0);
+
+        await lib.do_exec(["/usr/bin/perl", "-e", "1"]);
+
+        expect(exec.exec).toHaveBeenCalledTimes(1);
+        expect(core.warning).not.toHaveBeenCalled();
+    });
+
+    test("retries on transient failure then succeeds", async () => {
+        mockInputs({ sudo: "false", retries: "2", "retry-wait": "20" });
+        exec.exec
+            .mockRejectedValueOnce(new Error("599 Internal Exception"))
+            .mockResolvedValueOnce(0);
+
+        await lib.do_exec(["cpm", "install"]);
+
+        expect(exec.exec).toHaveBeenCalledTimes(2);
+        expect(core.warning).toHaveBeenCalledWith(
+            expect.stringContaining("attempt 1/3")
+        );
+        // Linear backoff on first retry: retry-wait * 1 = 20s
+        expect(lib._sleep_ms).toHaveBeenCalledWith(20 * 1000);
+    });
+
+    test("gives up after max attempts and rethrows last error", async () => {
+        mockInputs({ sudo: "false", retries: "2", "retry-wait": "5" });
+        exec.exec.mockRejectedValue(new Error("connection timed out"));
+
+        await expect(lib.do_exec(["cpm", "install"])).rejects.toThrow(
+            "connection timed out"
+        );
+
+        // retries=2 -> 3 total attempts
+        expect(exec.exec).toHaveBeenCalledTimes(3);
+        // Linear backoff: 5s then 10s
+        expect(lib._sleep_ms).toHaveBeenNthCalledWith(1, 5 * 1000);
+        expect(lib._sleep_ms).toHaveBeenNthCalledWith(2, 10 * 1000);
+    });
+
+    test("retries=0 disables retry loop", async () => {
+        mockInputs({ sudo: "false", retries: "0", "retry-wait": "20" });
+        exec.exec.mockRejectedValue(new Error("boom"));
+
+        await expect(lib.do_exec(["cpm", "install"])).rejects.toThrow("boom");
+
+        expect(exec.exec).toHaveBeenCalledTimes(1);
+        expect(lib._sleep_ms).not.toHaveBeenCalled();
+    });
+
+    test("defaults: retries=2 when input is empty", async () => {
+        mockInputs({ sudo: "false" });
+        exec.exec.mockRejectedValue(new Error("boom"));
+
+        await expect(lib.do_exec(["cpm", "install"])).rejects.toThrow("boom");
+
+        expect(exec.exec).toHaveBeenCalledTimes(3);
+    });
+
+    test("invalid retries input falls back to default", async () => {
+        mockInputs({ sudo: "false", retries: "not-a-number" });
+        exec.exec.mockRejectedValue(new Error("boom"));
+
+        await expect(lib.do_exec(["cpm", "install"])).rejects.toThrow("boom");
+
+        // Falls back to default of 2 retries = 3 attempts
+        expect(exec.exec).toHaveBeenCalledTimes(3);
+    });
+
+    test("negative retries input falls back to default", async () => {
+        mockInputs({ sudo: "false", retries: "-1" });
+        exec.exec.mockRejectedValue(new Error("boom"));
+
+        await expect(lib.do_exec(["cpm", "install"])).rejects.toThrow("boom");
+
+        expect(exec.exec).toHaveBeenCalledTimes(3);
+    });
+});
+
+describe("_parse_non_negative_int", () => {
+    test.each([
+        ["", 2, 2],
+        [null, 2, 2],
+        [undefined, 2, 2],
+        ["0", 2, 0],
+        ["1", 2, 1],
+        ["42", 2, 42],
+        ["-1", 2, 2],
+        ["abc", 2, 2],
+        ["1.5", 2, 1], // parseInt truncates
+    ])("_parse_non_negative_int(%p, %p) = %p", (raw, fallback, expected) => {
+        expect(lib._parse_non_negative_int(raw, fallback)).toBe(expected);
+    });
+});
+
 describe("install_cpm_location with backslash path", () => {
     test("escapes backslashes in path input", async () => {
         core.getInput.mockImplementation((name) => {

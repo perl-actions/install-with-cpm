@@ -138,6 +138,17 @@ function is_true(b) {
     return false;
 }
 
+function _parse_non_negative_int(raw, fallback) {
+    if (raw === null || raw === undefined || raw === "") return fallback;
+    const n = parseInt(raw, 10);
+    if (!Number.isFinite(n) || n < 0) return fallback;
+    return n;
+}
+
+function _sleep_ms(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function do_exec(cmd) {
     const sudo = is_true(core.getInput("sudo"));
     const platform = os.platform();
@@ -145,9 +156,33 @@ async function do_exec(cmd) {
     const bin = sudo && platform != "win32" ? "sudo" : first;
     const args = sudo && platform != "win32" ? cmd : rest;
 
+    const retries = _parse_non_negative_int(core.getInput("retries"), 2);
+    const retry_wait = _parse_non_negative_int(core.getInput("retry-wait"), 20);
+    const max_attempts = retries + 1;
+
     core.info(`do_exec: ${[bin, ...args].join(" ")}`);
 
-    await exec.exec(bin, args);
+    for (let attempt = 1; attempt <= max_attempts; attempt++) {
+        let err;
+        try {
+            await exec.exec(bin, args);
+            return;
+        } catch (e) {
+            err = e;
+        }
+
+        if (attempt === max_attempts) {
+            throw err;
+        }
+
+        const wait_s = retry_wait * attempt;
+        core.warning(
+            `cpm attempt ${attempt}/${max_attempts} failed (${err.message || err}); ` +
+            `retrying in ${wait_s}s...`
+        );
+        // Indirect through module.exports so tests can stub the sleep.
+        await module.exports._sleep_ms(wait_s * 1000);
+    }
 }
 
 async function run() {
@@ -261,4 +296,7 @@ module.exports = {
     cpm_cache_dir,
     is_immutable_ref,
     run,
+    // Exposed for testing
+    _parse_non_negative_int,
+    _sleep_ms,
 };
