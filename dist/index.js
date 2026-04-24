@@ -92747,7 +92747,7 @@ const { run } = __nccwpck_require__(52909);
     try {
         await run();
     } catch (error) {
-        core.setFailed(error.message);
+        core.setFailed(error);
     }
 })();
 
