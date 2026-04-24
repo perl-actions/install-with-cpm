@@ -987,6 +987,30 @@ describe("run", () => {
         expect(allArgs).not.toContain("  DBI  ");
     });
 
+    test("passes quoted args with spaces as single arguments", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: '--configure-arg "--prefix=/opt/my app"',
+            verbose: "false",
+            sudo: "false",
+        });
+
+        await lib.run();
+
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+
+        expect(allArgs).toContain("--configure-arg");
+        expect(allArgs).toContain("--prefix=/opt/my app");
+    });
+
     test("filters empty entries from args with leading/trailing spaces", async () => {
         mockInputs({
             perl: "perl",
@@ -1298,6 +1322,70 @@ describe("do_exec logging", () => {
         expect(doExecLog).toContain("sudo");
         expect(doExecLog).toContain("/usr/bin/perl");
         expect(doExecLog).toContain("-e");
+    });
+});
+
+describe("split_args", () => {
+    test("splits simple whitespace-separated args", () => {
+        expect(lib.split_args("--with-recommends --with-suggests")).toEqual([
+            "--with-recommends",
+            "--with-suggests",
+        ]);
+    });
+
+    test("handles leading and trailing whitespace", () => {
+        expect(lib.split_args("  --foo  --bar  ")).toEqual(["--foo", "--bar"]);
+    });
+
+    test("handles double-quoted values with spaces", () => {
+        expect(lib.split_args('--option "value with spaces"')).toEqual([
+            "--option",
+            "value with spaces",
+        ]);
+    });
+
+    test("handles single-quoted values with spaces", () => {
+        expect(lib.split_args("--option 'value with spaces'")).toEqual([
+            "--option",
+            "value with spaces",
+        ]);
+    });
+
+    test("handles backslash escapes inside double quotes", () => {
+        expect(lib.split_args('--option "say \\"hello\\""')).toEqual([
+            "--option",
+            'say "hello"',
+        ]);
+    });
+
+    test("does not process escapes inside single quotes", () => {
+        expect(lib.split_args("--option 'no\\\\escape'")).toEqual([
+            "--option",
+            "no\\\\escape",
+        ]);
+    });
+
+    test("handles empty string", () => {
+        expect(lib.split_args("")).toEqual([]);
+    });
+
+    test("handles multiple quoted segments", () => {
+        expect(
+            lib.split_args('--a "one two" --b "three four"')
+        ).toEqual(["--a", "one two", "--b", "three four"]);
+    });
+
+    test("handles quoted value adjacent to unquoted", () => {
+        expect(lib.split_args('--prefix="my dir"')).toEqual([
+            '--prefix=my dir',
+        ]);
+    });
+
+    test("handles installdeps dot (common usage)", () => {
+        expect(lib.split_args("--installdeps .")).toEqual([
+            "--installdeps",
+            ".",
+        ]);
     });
 });
 

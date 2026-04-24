@@ -96,11 +96,20 @@ Possible values: true | false [default: true]
 ### `args`
 
 Extra arguments to pass to the cpm command line.
+Shell-style quoting is supported: use single or double quotes for values that contain spaces.
 
 You can also use this option to run your own flavor
 without the need of setting `install` or `cpanfile`.
 ```yaml
 args: "--installdeps ."
+```
+
+**Quoting examples:**
+```yaml
+# Double quotes for values with spaces
+args: '--man-pages --configure-arg "--prefix=/opt/my app"'
+# Single quotes
+args: "--option 'value with spaces'"
 ```
 
 ### `sudo`
