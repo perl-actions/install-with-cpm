@@ -1,3 +1,4 @@
+const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
@@ -17,6 +18,7 @@ const io = require("@actions/io");
 
 const lib = require("./lib");
 
+let readFileSyncSpy;
 beforeEach(() => {
     jest.clearAllMocks();
     core.info.mockImplementation(() => {});
@@ -24,6 +26,12 @@ beforeEach(() => {
     cache.restoreCache.mockResolvedValue(undefined);
     cache.saveCache.mockResolvedValue(0);
     io.mkdirP.mockResolvedValue();
+    // Default mock: return dummy content so checksum verification doesn't fail on missing files
+    readFileSyncSpy = jest.spyOn(fs, "readFileSync").mockReturnValue(Buffer.from("cpm-script-content"));
+});
+
+afterEach(() => {
+    readFileSyncSpy.mockRestore();
 });
 
 describe("is_true", () => {
@@ -1745,5 +1753,135 @@ describe("install_cpm caching", () => {
         expect(core.info).toHaveBeenCalledWith(
             expect.stringContaining("Cache save failed")
         );
+    });
+});
+
+describe("compute_sha256", () => {
+    test("computes correct SHA-256 hex digest", () => {
+        const content = "#!/usr/bin/env perl\nprint 'hello cpm';\n";
+        const expected = crypto.createHash("sha256").update(content).digest("hex");
+
+        readFileSyncSpy.mockReturnValue(Buffer.from(content));
+
+        const result = lib.compute_sha256("/tmp/cpm-script");
+
+        expect(result).toBe(expected);
+        expect(readFileSyncSpy).toHaveBeenCalledWith("/tmp/cpm-script");
+    });
+});
+
+describe("verify_checksum", () => {
+    const SCRIPT_CONTENT = "#!/usr/bin/env perl\nuse App::cpm;\n";
+    const CORRECT_HASH = crypto.createHash("sha256").update(SCRIPT_CONTENT).digest("hex");
+
+    beforeEach(() => {
+        readFileSyncSpy.mockReturnValue(Buffer.from(SCRIPT_CONTENT));
+    });
+
+    test("passes when expected checksum matches", () => {
+        const result = lib.verify_checksum("/tmp/cpm", CORRECT_HASH);
+
+        expect(result).toBe(CORRECT_HASH);
+        expect(core.info).toHaveBeenCalledWith(`cpm SHA-256: ${CORRECT_HASH}`);
+    });
+
+    test("passes with uppercase expected checksum", () => {
+        const result = lib.verify_checksum("/tmp/cpm", CORRECT_HASH.toUpperCase());
+
+        expect(result).toBe(CORRECT_HASH);
+    });
+
+    test("throws on checksum mismatch", () => {
+        const wrongHash = "a".repeat(64);
+
+        expect(() => lib.verify_checksum("/tmp/cpm", wrongHash)).toThrow(
+            /checksum mismatch/i
+        );
+    });
+
+    test("logs hash but does not throw when no expected checksum", () => {
+        const result = lib.verify_checksum("/tmp/cpm", "");
+
+        expect(result).toBe(CORRECT_HASH);
+        expect(core.info).toHaveBeenCalledWith(`cpm SHA-256: ${CORRECT_HASH}`);
+    });
+
+    test("logs hash but does not throw when expected is undefined", () => {
+        const result = lib.verify_checksum("/tmp/cpm", undefined);
+
+        expect(result).toBe(CORRECT_HASH);
+    });
+});
+
+describe("install_cpm checksum integration", () => {
+    const SCRIPT_CONTENT = "#!/usr/bin/env perl\n";
+    const CORRECT_HASH = crypto.createHash("sha256").update(SCRIPT_CONTENT).digest("hex");
+
+    beforeEach(() => {
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+        readFileSyncSpy.mockReturnValue(Buffer.from(SCRIPT_CONTENT));
+        tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
+        exec.exec.mockResolvedValue(0);
+        io.cp.mockResolvedValue();
+        io.mkdirP.mockResolvedValue();
+    });
+
+    test("succeeds when checksum matches downloaded script", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "0.997014";
+            if (name === "checksum") return CORRECT_HASH;
+            if (name === "sudo") return "false";
+            return "";
+        });
+
+        const result = await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
+
+        expect(result.path).toBe("/usr/local/bin/cpm");
+        expect(core.info).toHaveBeenCalledWith(`cpm SHA-256: ${CORRECT_HASH}`);
+    });
+
+    test("fails when checksum does not match", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "0.997014";
+            if (name === "checksum") return "b".repeat(64);
+            if (name === "sudo") return "false";
+            return "";
+        });
+
+        await expect(
+            lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm")
+        ).rejects.toThrow(/checksum mismatch/i);
+    });
+
+    test("skips verification when checksum input is empty", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "checksum") return "";
+            if (name === "sudo") return "false";
+            return "";
+        });
+
+        const result = await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
+
+        expect(result.path).toBe("/usr/local/bin/cpm");
+        // Hash should still be logged
+        expect(core.info).toHaveBeenCalledWith(expect.stringContaining("cpm SHA-256:"));
+    });
+
+    test("verifies checksum on cache hit too", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "0.997014";
+            if (name === "checksum") return "c".repeat(64); // wrong hash
+            if (name === "sudo") return "false";
+            return "";
+        });
+        cache.restoreCache.mockResolvedValue("cpm-script-0.997014-linux");
+
+        await expect(
+            lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm")
+        ).rejects.toThrow(/checksum mismatch/i);
+
+        // Should not have tried to download
+        expect(tc.downloadTool).not.toHaveBeenCalled();
     });
 });
