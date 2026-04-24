@@ -1,3 +1,4 @@
+const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
@@ -225,6 +226,7 @@ describe("install_cpm", () => {
 });
 
 describe("run", () => {
+    let existsSyncSpy;
     beforeEach(() => {
         io.which.mockResolvedValue("/usr/bin/perl");
         tc.downloadTool.mockResolvedValue("/tmp/cpm-script");
@@ -241,6 +243,11 @@ describe("run", () => {
             }
             return 0;
         });
+        existsSyncSpy = jest.spyOn(fs, "existsSync").mockReturnValue(true);
+    });
+
+    afterEach(() => {
+        existsSyncSpy.mockRestore();
     });
 
     function mockInputs(inputs) {
@@ -1054,6 +1061,108 @@ describe("run", () => {
         tc.downloadTool.mockRejectedValue(new Error("download failed"));
 
         await expect(lib.run()).rejects.toThrow("download failed");
+    });
+
+    test("calls setFailed when cpanfile does not exist", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "",
+            cpanfile: "missing-cpanfile",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+        });
+
+        existsSyncSpy.mockReturnValue(false);
+
+        await lib.run();
+
+        expect(core.setFailed).toHaveBeenCalledWith(
+            expect.stringContaining("cpanfile not found")
+        );
+        // Should not attempt to run cpm install
+        const calls = exec.exec.mock.calls;
+        const installCall = calls.find(
+            (c) => c[1] && c[1].includes("--cpanfile")
+        );
+        expect(installCall).toBeUndefined();
+    });
+
+    test("proceeds when cpanfile exists on disk", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "",
+            cpanfile: "cpanfile",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+        });
+
+        await lib.run();
+
+        expect(core.setFailed).not.toHaveBeenCalled();
+        const calls = exec.exec.mock.calls;
+        const installCall = calls.find(
+            (c) => c[1] && c[1].includes("--cpanfile")
+        );
+        expect(installCall).toBeDefined();
+    });
+
+    test("calls setFailed when snapshot file does not exist", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            snapshot: "missing-snapshot.txt",
+        });
+
+        existsSyncSpy.mockReturnValue(false);
+
+        await lib.run();
+
+        expect(core.setFailed).toHaveBeenCalledWith(
+            expect.stringContaining("snapshot file not found")
+        );
+    });
+
+    test("proceeds when snapshot file exists on disk", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            snapshot: "cpanfile.snapshot",
+        });
+
+        await lib.run();
+
+        expect(core.setFailed).not.toHaveBeenCalled();
+
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+        expect(allArgs).toContain("--snapshot");
     });
 });
 

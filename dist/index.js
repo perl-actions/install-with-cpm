@@ -10,6 +10,7 @@ const tc = __nccwpck_require__(27784);
 const exec = __nccwpck_require__(71514);
 const io = __nccwpck_require__(47351);
 
+const fs = __nccwpck_require__(57147);
 const path = __nccwpck_require__(71017);
 const os = __nccwpck_require__(22037);
 
@@ -253,6 +254,13 @@ async function run() {
         CMD_install.push("--mirror", mirror);
     }
     if (snapshot.length) {
+        const snapshot_full_path = path.resolve(snapshot);
+        if (!fs.existsSync(snapshot_full_path)) {
+            core.setFailed(
+                `snapshot file not found: "${snapshot_full_path}". Please check the 'snapshot' input path.`
+            );
+            return;
+        }
         CMD_install.push("--snapshot", snapshot);
     }
     if (is_true(dash_g)) {
@@ -283,6 +291,13 @@ async function run() {
         core.info(`cpanfile: ${cpanfile}!`);
         const cpanfile_full_path = path.resolve(cpanfile);
         core.info(`cpanfile: ${cpanfile_full_path}! [resolved]`);
+
+        if (!fs.existsSync(cpanfile_full_path)) {
+            core.setFailed(
+                `cpanfile not found: "${cpanfile_full_path}". Please check the 'cpanfile' input path.`
+            );
+            return;
+        }
 
         let cmd = [...CMD_install];
         cmd.push("--cpanfile", cpanfile_full_path);
