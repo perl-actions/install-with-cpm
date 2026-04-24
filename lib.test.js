@@ -1230,9 +1230,7 @@ describe("install_cpm_location path injection safety", () => {
             }
             return 0;
         });
-        lib.set_perl("/usr/bin/perl");
-
-        await lib.install_cpm_location();
+        await lib.install_cpm_location("/usr/bin/perl");
 
         const execArgs = exec.exec.mock.calls[0];
         const args = execArgs[1];
@@ -1276,9 +1274,7 @@ describe("install_cpm_location path injection safety", () => {
             }
             return 0;
         });
-        lib.set_perl("/usr/bin/perl");
-
-        await lib.install_cpm_location();
+        await lib.install_cpm_location("/usr/bin/perl");
 
         const execArgs = exec.exec.mock.calls[0];
         const args = execArgs[1];
