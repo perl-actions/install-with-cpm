@@ -578,6 +578,121 @@ describe("run", () => {
         expect(allArgs).not.toContain("--mirror");
     });
 
+    test("calls setFailed for mirror with ftp:// scheme", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            mirror: "ftp://cpan.org/",
+        });
+
+        await lib.run();
+
+        expect(core.setFailed).toHaveBeenCalledWith(
+            expect.stringContaining("Invalid mirror URL")
+        );
+    });
+
+    test("calls setFailed for mirror with file:// scheme", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            mirror: "file:///etc/passwd",
+        });
+
+        await lib.run();
+
+        expect(core.setFailed).toHaveBeenCalledWith(
+            expect.stringContaining("Invalid mirror URL")
+        );
+    });
+
+    test("calls setFailed for mirror without scheme", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            mirror: "cpan.metacpan.org",
+        });
+
+        await lib.run();
+
+        expect(core.setFailed).toHaveBeenCalledWith(
+            expect.stringContaining("Invalid mirror URL")
+        );
+    });
+
+    test("accepts mirror with http:// scheme", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            mirror: "http://cpan.metacpan.org/",
+        });
+
+        await lib.run();
+
+        expect(core.setFailed).not.toHaveBeenCalled();
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+        expect(allArgs).toContain("--mirror");
+        expect(allArgs).toContain("http://cpan.metacpan.org/");
+    });
+
+    test("accepts mirror with HTTPS:// scheme (case-insensitive)", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            mirror: "HTTPS://cpan.metacpan.org/",
+        });
+
+        await lib.run();
+
+        expect(core.setFailed).not.toHaveBeenCalled();
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+        expect(allArgs).toContain("--mirror");
+    });
+
     test("passes snapshot option when provided", async () => {
         mockInputs({
             perl: "perl",
