@@ -417,6 +417,94 @@ describe("run", () => {
         expect(allArgs[idx + 1]).toBe("5");
     });
 
+    test("calls setFailed for non-numeric workers input", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            workers: "abc",
+        });
+
+        await lib.run();
+
+        expect(core.setFailed).toHaveBeenCalledWith(
+            expect.stringContaining("Invalid value for 'workers'")
+        );
+    });
+
+    test("calls setFailed for negative workers input", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            workers: "-3",
+        });
+
+        await lib.run();
+
+        expect(core.setFailed).toHaveBeenCalledWith(
+            expect.stringContaining("Invalid value for 'workers'")
+        );
+    });
+
+    test("calls setFailed for zero workers", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            workers: "0",
+        });
+
+        await lib.run();
+
+        expect(core.setFailed).toHaveBeenCalledWith(
+            expect.stringContaining("Invalid value for 'workers'")
+        );
+    });
+
+    test("calls setFailed for decimal workers input", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            workers: "2.5",
+        });
+
+        await lib.run();
+
+        expect(core.setFailed).toHaveBeenCalledWith(
+            expect.stringContaining("Invalid value for 'workers'")
+        );
+    });
+
     test("omits --workers flag when workers input is empty", async () => {
         mockInputs({
             perl: "perl",
