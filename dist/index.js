@@ -151,7 +151,7 @@ async function do_exec(cmd) {
     const bin = sudo && platform != "win32" ? "sudo" : first;
     const args = sudo && platform != "win32" ? cmd : rest;
 
-    core.info(`do_exec: ${bin}`);
+    core.info(`do_exec: ${[bin, ...args].join(" ")}`);
 
     await exec.exec(bin, args);
 }
