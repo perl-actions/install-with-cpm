@@ -121,7 +121,9 @@ async function install_cpm(install_to) {
             PERL,
             "-MFile::Copy=cp",
             "-e",
-            `cp("${cpmScript}", "${install_to}"); chmod(0755, "${install_to}")`,
+            'cp($ARGV[0], $ARGV[1]); chmod(0755, $ARGV[1])',
+            cpmScript,
+            install_to,
         ]);
     }
 
