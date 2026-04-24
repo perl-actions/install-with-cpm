@@ -4,6 +4,7 @@ const tc = require("@actions/tool-cache");
 const exec = require("@actions/exec");
 const io = require("@actions/io");
 
+const fs = require("fs");
 const path = require("path");
 const os = require("os");
 
@@ -239,6 +240,13 @@ async function run() {
         CMD_install.push("--mirror", mirror);
     }
     if (snapshot.length) {
+        const snapshot_full_path = path.resolve(snapshot);
+        if (!fs.existsSync(snapshot_full_path)) {
+            core.setFailed(
+                `snapshot file not found: "${snapshot_full_path}". Please check the 'snapshot' input path.`
+            );
+            return;
+        }
         CMD_install.push("--snapshot", snapshot);
     }
     if (is_true(dash_g)) {
@@ -269,6 +277,13 @@ async function run() {
         core.info(`cpanfile: ${cpanfile}!`);
         const cpanfile_full_path = path.resolve(cpanfile);
         core.info(`cpanfile: ${cpanfile_full_path}! [resolved]`);
+
+        if (!fs.existsSync(cpanfile_full_path)) {
+            core.setFailed(
+                `cpanfile not found: "${cpanfile_full_path}". Please check the 'cpanfile' input path.`
+            );
+            return;
+        }
 
         let cmd = [...CMD_install];
         cmd.push("--cpanfile", cpanfile_full_path);
