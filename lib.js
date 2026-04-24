@@ -7,9 +7,7 @@ const io = require("@actions/io");
 const path = require("path");
 const os = require("os");
 
-let PERL;
-
-async function install_cpm_location() {
+async function install_cpm_location(perl) {
     let out = "";
 
     const options = {};
@@ -20,7 +18,7 @@ async function install_cpm_location() {
     };
 
     const p = core.getInput("path").replace(/\\/g, "\\\\");
-    await exec.exec(PERL, ["-MConfig", "-e", `print "${p}"`], options);
+    await exec.exec(perl, ["-MConfig", "-e", `print "${p}"`], options);
 
     return path.resolve(out);
 }
@@ -60,7 +58,7 @@ function cpm_cache_dir() {
 
 const VERSION_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
 
-async function install_cpm(install_to) {
+async function install_cpm(perl, install_to) {
     const version = core.getInput("version");
 
     if (!version || !VERSION_PATTERN.test(version) || version.includes("..")) {
@@ -112,7 +110,7 @@ async function install_cpm(install_to) {
         await io.cp(cpmScript, install_to);
     } else {
         await do_exec([
-            PERL,
+            perl,
             "-MFile::Copy=cp",
             "-e",
             'cp($ARGV[0], $ARGV[1]); chmod(0755, $ARGV[1])',
@@ -153,11 +151,11 @@ async function do_exec(cmd) {
 }
 
 async function run() {
-    PERL = await which_perl();
+    const perl = await which_perl();
 
-    const cpm_location = await install_cpm_location();
+    const cpm_location = await install_cpm_location(perl);
 
-    const { cacheHit } = await install_cpm(cpm_location);
+    const { cacheHit } = await install_cpm(perl, cpm_location);
 
     core.setOutput("cpm-path", cpm_location);
     core.setOutput("cache-hit", String(cacheHit));
@@ -182,7 +180,7 @@ async function run() {
 
     /* base CMD_install command */
     let CMD_install = [
-        PERL,
+        perl,
         cpm_location,
         "install",
         "--show-build-log-on-failure",
@@ -258,7 +256,4 @@ module.exports = {
     cpm_cache_dir,
     is_immutable_ref,
     run,
-    // Expose PERL setter for testing
-    set_perl(p) { PERL = p; },
-    get_perl() { return PERL; },
 };
