@@ -200,8 +200,6 @@ async function run() {
     }
     if (snapshot !== null && snapshot.length) {
         CMD_install.push("--snapshot", snapshot);
-    } else {
-        CMD_install.push("--snapshot", "");
     }
     if (is_true(dash_g)) {
         CMD_install.push("-g");
