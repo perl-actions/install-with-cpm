@@ -65,6 +65,23 @@ inputs:
     required: false
     default: "main"
 
+  retries:
+    description: >
+      Number of additional attempts after a cpm failure. 0 disables the
+      retry loop (single attempt, historical behavior). Intended to
+      absorb transient upstream failures (e.g. metacpan 599 / connection
+      timed out) without flaking the job.
+    required: false
+    default: "2"
+
+  retry-wait:
+    description: >
+      Base delay in seconds between attempts. Applied with linear
+      backoff: attempt N waits retry-wait * N seconds before the next
+      attempt (e.g. 20s, 40s, 60s with the default).
+    required: false
+    default: "20"
+
 outputs:
   cpm-path:
     description: "Absolute path where cpm was installed"
