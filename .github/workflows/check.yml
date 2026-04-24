@@ -215,7 +215,9 @@ jobs:
         uses: ./
         with:
           cpanfile: 'cpanfile.test'
-          args: '--with-recommends --with-suggests'
+          args: |
+            --with-recommends
+            --with-suggests
       - run: perl -MSimple::Accessor -e1
 
   ### ------------------------------------------------
