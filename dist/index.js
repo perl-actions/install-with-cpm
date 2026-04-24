@@ -232,6 +232,13 @@ async function run() {
         CMD_install.push("-v");
     }
     if (workers.length) {
+        const n = Number(workers);
+        if (!Number.isInteger(n) || n < 1) {
+            core.setFailed(
+                `Invalid value for 'workers': "${workers}". Must be a positive integer (e.g., "5").`
+            );
+            return;
+        }
         CMD_install.push("--workers", workers);
     }
     if (mirror.length) {
