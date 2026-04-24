@@ -161,6 +161,20 @@ snapshot: "cpanfile.snapshot"
 
 Which version/tag of `cpm` to install. Default is 'main' to use the latest version.
 
+## Caching
+
+The action caches the downloaded `cpm` script using [`@actions/cache`](https://github.com/actions/toolkit/tree/main/packages/cache)
+to avoid re-downloading it on every run.
+
+**How it works:**
+
+- **Immutable versions** (semver tags like `0.997014`, or commit SHAs): the cache key is fixed, so the script is downloaded once and reused indefinitely.
+- **Mutable refs** (branch names like `main`): the cache key includes the current UTC date, so the script is re-downloaded at most once per day. This ensures you always get recent updates without downloading on every run.
+
+Cache operations are best-effort — if the cache is unavailable (e.g., on self-hosted runners without cache support), the action falls back to downloading directly. Cache failures never cause the action to fail.
+
+The cache key format is: `cpm-script-{version}-{platform}[-{date}]`
+
 ## Outputs
 
 none
