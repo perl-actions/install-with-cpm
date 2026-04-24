@@ -927,6 +927,44 @@ describe("install_cpm version validation", () => {
     });
 });
 
+describe("do_exec logging", () => {
+    test("logs the full command including arguments, not just the binary", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "sudo") return "false";
+            return "";
+        });
+        exec.exec.mockResolvedValue(0);
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+
+        await lib.do_exec(["/usr/bin/perl", "-e", "print 42"]);
+
+        // The log line must contain the arguments, not just the binary
+        const logCalls = core.info.mock.calls.map((c) => c[0]);
+        const doExecLog = logCalls.find((msg) => msg.startsWith("do_exec:"));
+        expect(doExecLog).toBeDefined();
+        expect(doExecLog).toContain("-e");
+        expect(doExecLog).toContain("print 42");
+    });
+
+    test("logs sudo and full original command when sudo is enabled", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "sudo") return "true";
+            return "";
+        });
+        exec.exec.mockResolvedValue(0);
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+
+        await lib.do_exec(["/usr/bin/perl", "-e", "1"]);
+
+        const logCalls = core.info.mock.calls.map((c) => c[0]);
+        const doExecLog = logCalls.find((msg) => msg.startsWith("do_exec:"));
+        expect(doExecLog).toBeDefined();
+        expect(doExecLog).toContain("sudo");
+        expect(doExecLog).toContain("/usr/bin/perl");
+        expect(doExecLog).toContain("-e");
+    });
+});
+
 describe("do_exec mutation", () => {
     test("does not mutate the caller's cmd array", async () => {
         core.getInput.mockImplementation((name) => {
