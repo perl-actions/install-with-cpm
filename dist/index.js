@@ -343,7 +343,7 @@ async function run() {
             );
             return;
         }
-        CMD_install.push("--snapshot", snapshot);
+        CMD_install.push("--snapshot", snapshot_full_path);
     }
     if (is_true(dash_g)) {
         CMD_install.push("-g");

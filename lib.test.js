@@ -735,7 +735,7 @@ describe("run", () => {
         const allArgs = [lastCall[0], ...lastCall[1]];
 
         expect(allArgs).toContain("--snapshot");
-        expect(allArgs).toContain("cpanfile.snapshot");
+        expect(allArgs).toContain(path.resolve("cpanfile.snapshot"));
     });
 
     test("does not pass --snapshot when snapshot is empty", async () => {
@@ -1200,6 +1200,7 @@ describe("run", () => {
         const lastCall = calls[calls.length - 1];
         const allArgs = [lastCall[0], ...lastCall[1]];
         expect(allArgs).toContain("--snapshot");
+        expect(allArgs).toContain(path.resolve("cpanfile.snapshot"));
     });
 });
 
