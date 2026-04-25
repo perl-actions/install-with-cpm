@@ -196,6 +196,26 @@ waits are 20 s, then 40 s.
 
 Default: `20`.
 
+The maximum delay per attempt is capped at **300 seconds** regardless
+of the calculated backoff value.
+
+### `checksum`
+
+Expected SHA-256 hex digest of the cpm script. When provided, the action
+computes the SHA-256 hash of the downloaded (or cached) script and fails
+if it doesn't match. Use this for reproducible, tamper-evident builds.
+
+```yaml
+- uses: perl-actions/install-with-cpm@v2
+  with:
+    install: "Simple::Accessor"
+    version: "0.997014"
+    checksum: "deadbeef..."
+```
+
+When omitted, the integrity check is skipped and the hash is only logged
+for informational purposes.
+
 ## Caching
 
 The action caches the downloaded `cpm` script using [`@actions/cache`](https://github.com/actions/toolkit/tree/main/packages/cache)
