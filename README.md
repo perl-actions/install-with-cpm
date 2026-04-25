@@ -166,6 +166,23 @@ This prevents the common CI failure when `cpanfile.snapshot` exists in the repo 
 snapshot: "cpanfile.snapshot"
 ```
 
+### `local-lib`
+
+Install modules into a local directory instead of the global `@INC`. When set,
+cpm runs with `--local-lib-contained <path>` and the action exports `PERL5LIB`
+and `PATH` so subsequent steps can use the installed modules immediately.
+
+```yaml
+- name: install to local directory
+  uses: perl-actions/install-with-cpm@v2
+  with:
+    install: "Simple::Accessor"
+    local-lib: "local"
+    sudo: false
+    global: false
+- run: perl -MSimple::Accessor -e1
+```
+
 ### `version`
 
 Which version/tag of `cpm` to install. Default is 'main' to use the latest version.

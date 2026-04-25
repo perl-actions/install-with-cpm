@@ -763,6 +763,65 @@ describe("run", () => {
         expect(allArgs).not.toContain("--snapshot");
     });
 
+    test("passes --local-lib-contained and exports env when local-lib is set", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            "local-lib": "local",
+        });
+
+        await lib.run();
+
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+
+        expect(allArgs).toContain("--local-lib-contained");
+        const idx = allArgs.indexOf("--local-lib-contained");
+        expect(allArgs[idx + 1]).toBe(path.resolve("local"));
+
+        expect(core.exportVariable).toHaveBeenCalledWith(
+            "PERL5LIB",
+            path.join(path.resolve("local"), "lib", "perl5")
+        );
+        expect(core.addPath).toHaveBeenCalledWith(
+            path.join(path.resolve("local"), "bin")
+        );
+    });
+
+    test("does not pass --local-lib-contained when local-lib is empty", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "Moose",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+            "local-lib": "",
+        });
+
+        await lib.run();
+
+        const calls = exec.exec.mock.calls;
+        const lastCall = calls[calls.length - 1];
+        const allArgs = [lastCall[0], ...lastCall[1]];
+
+        expect(allArgs).not.toContain("--local-lib-contained");
+        expect(core.exportVariable).not.toHaveBeenCalled();
+    });
+
     test("does not add -g flag when global is false", async () => {
         mockInputs({
             perl: "perl",

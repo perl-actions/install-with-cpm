@@ -60,6 +60,15 @@ inputs:
     required: false
     default: ""
 
+  local-lib:
+    description: >
+      Install modules into a local directory using cpm's
+      --local-lib-contained flag and export the necessary environment
+      variables (PERL5LIB, PATH) so subsequent steps can use the
+      installed modules.  Leave empty to use the default global install.
+    required: false
+    default: ""
+
   version:
     description: "Which version to install"
     required: false

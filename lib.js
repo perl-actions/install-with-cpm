@@ -290,6 +290,7 @@ async function run() {
     const workers = core.getInput("workers");
     const mirror = core.getInput("mirror");
     const snapshot = core.getInput("snapshot");
+    const local_lib = core.getInput("local-lib");
 
     const w_tests = is_true(tests) ? "--test" : "--no-test";
     let w_args = [];
@@ -338,6 +339,12 @@ async function run() {
             return;
         }
         CMD_install.push("--snapshot", snapshot_full_path);
+    }
+    if (local_lib.length) {
+        const lib_path = path.resolve(local_lib);
+        CMD_install.push("--local-lib-contained", lib_path);
+        core.exportVariable("PERL5LIB", path.join(lib_path, "lib", "perl5"));
+        core.addPath(path.join(lib_path, "bin"));
     }
     if (is_true(dash_g)) {
         CMD_install.push("-g");
