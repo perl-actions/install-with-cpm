@@ -281,6 +281,24 @@ jobs:
           snapshot: 'cpanfile.snapshot'
       - run: perl -MSimple::Accessor -e1
 
+  ### ------------------------------------------------
+  ### Install with local-lib
+  ### ------------------------------------------------
+
+  with_local_lib:
+    runs-on: ubuntu-latest
+    name: 'cpm with local-lib'
+    steps:
+      - uses: actions/checkout@v6
+      - name: uses install-with-cpm
+        uses: ./
+        with:
+          install: 'Simple::Accessor'
+          local-lib: 'local'
+          sudo: false
+          global: false
+      - run: perl -MSimple::Accessor -e1
+
   ## ------------------------------------------------
   ## testing with windows
   ## ------------------------------------------------
