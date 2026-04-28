@@ -1957,6 +1957,22 @@ describe("install_cpm checksum integration", () => {
         expect(core.info).toHaveBeenCalledWith(expect.stringContaining("cpm SHA-256:"));
     });
 
+    test("does not cache script when checksum fails", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "0.997014";
+            if (name === "checksum") return "b".repeat(64); // wrong hash
+            if (name === "sudo") return "false";
+            return "";
+        });
+
+        await expect(
+            lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm")
+        ).rejects.toThrow(/checksum mismatch/i);
+
+        // The corrupted download must NOT be saved to cache
+        expect(cache.saveCache).not.toHaveBeenCalled();
+    });
+
     test("verifies checksum on cache hit too", async () => {
         core.getInput.mockImplementation((name) => {
             if (name === "version") return "0.997014";
