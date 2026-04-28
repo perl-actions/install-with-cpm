@@ -178,8 +178,16 @@ async function install_cpm(perl, install_to) {
     if (!cacheHit) {
         core.info(`Get cpm from URL: ${url}`);
         cpmScript = await tc.downloadTool(url);
+    }
 
-        // Save to cache for future runs
+    // Verify integrity before caching or copying to install location.
+    // This must run before cache.saveCache so a corrupted download is
+    // never persisted — especially for immutable refs whose cache key
+    // never rotates.
+    verify_checksum(cpmScript, checksum);
+
+    if (!cacheHit) {
+        // Save verified script to cache for future runs
         try {
             await io.mkdirP(cacheDir);
             await io.cp(cpmScript, cachedScript);
@@ -189,9 +197,6 @@ async function install_cpm(perl, install_to) {
             core.info(`Cache save failed (non-fatal): ${e.message}`);
         }
     }
-
-    // Verify integrity before copying to install location
-    verify_checksum(cpmScript, checksum);
 
     core.info(`Install cpm to: ${install_to}`);
 
