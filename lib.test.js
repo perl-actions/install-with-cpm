@@ -814,6 +814,56 @@ describe("run", () => {
         expect(cpanfileCall).toBeDefined();
     });
 
+    test("skips install and warns when install input is only empty lines", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "\n\n\n",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+        });
+
+        await lib.run();
+
+        // Should not execute cpm install with no modules
+        const calls = exec.exec.mock.calls;
+        const installCalls = calls.filter(
+            (c) => c[1] && !c[1].includes("-MConfig") && !c[1].includes("-MFile::Copy=cp")
+        );
+        expect(installCalls).toHaveLength(0);
+
+        // Should emit the "Nothing to install" warning
+        expect(core.warning).toHaveBeenCalledWith(
+            expect.stringContaining("Nothing to install")
+        );
+    });
+
+    test("skips install and warns when install input is only whitespace", async () => {
+        mockInputs({
+            perl: "perl",
+            path: "$Config{installsitescript}/cpm",
+            version: "main",
+            install: "   \n   \n   ",
+            cpanfile: "",
+            tests: "false",
+            global: "false",
+            args: "",
+            verbose: "false",
+            sudo: "false",
+        });
+
+        await lib.run();
+
+        expect(core.warning).toHaveBeenCalledWith(
+            expect.stringContaining("Nothing to install")
+        );
+    });
+
     test("warns when no install, cpanfile, or args provided", async () => {
         mockInputs({
             perl: "perl",
