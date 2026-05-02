@@ -350,15 +350,16 @@ async function run() {
 
     /* install one ore more modules */
     if (install.length) {
-        // install one or more modules
-        core.info(`install: ${install}!`);
         const list = install.split("\n").map(s => s.trim()).filter(Boolean);
 
-        let cmd = [...CMD_install]; /* clone array */
-        cmd = cmd.concat(list);
+        if (list.length) {
+            core.info(`install: ${install}!`);
+            let cmd = [...CMD_install]; /* clone array */
+            cmd = cmd.concat(list);
 
-        has_run = true;
-        await do_exec(cmd);
+            has_run = true;
+            await do_exec(cmd);
+        }
     }
 
     /* install from cpanfile */
