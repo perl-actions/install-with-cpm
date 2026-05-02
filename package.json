@@ -2,10 +2,11 @@
   "name": "install-with-cpm",
   "version": "1.6.0",
   "description": "Install Perl modules with App::cpm",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "lint": "eslint index.js lib.js lib.test.js",
-    "test": "jest",
+    "test": "NODE_OPTIONS='--experimental-vm-modules' jest",
     "build": "ncc build index.js",
     "pretty": "js-beautify -r index.js"
   },
@@ -21,15 +22,15 @@
   },
   "homepage": "https://github.com/perl-actions/install-with-cpm#readme",
   "dependencies": {
-    "@actions/cache": "^5.0.5",
-    "@actions/core": "^2.0.3",
-    "@actions/exec": "^1.1.1",
-    "@actions/io": "^1.1.2",
-    "@actions/tool-cache": "^3.0.1"
+    "@actions/cache": "^6.0.0",
+    "@actions/core": "^3.0.1",
+    "@actions/exec": "^3.0.0",
+    "@actions/io": "^3.0.2",
+    "@actions/tool-cache": "^4.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.0.0",
-    "@vercel/ncc": "^0.34.0",
+    "@vercel/ncc": "^0.38.4",
     "eslint": "^9.0.0",
     "globals": "^15.0.0",
     "jest": "^30.3.0"

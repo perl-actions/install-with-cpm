@@ -1,9 +1,20 @@
 // Test the top-level error handler in index.js
-jest.mock("@actions/core");
-jest.mock("./lib");
+import { jest, describe, test, expect, beforeEach } from "@jest/globals";
 
-const core = require("@actions/core");
-const { run } = require("./lib");
+const mockSetFailed = jest.fn();
+const mockRun = jest.fn();
+
+jest.unstable_mockModule("@actions/core", () => ({
+    getInput: jest.fn(),
+    info: jest.fn(),
+    warning: jest.fn(),
+    setFailed: mockSetFailed,
+    setOutput: jest.fn(),
+}));
+
+jest.unstable_mockModule("./lib.js", () => ({
+    run: mockRun,
+}));
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -12,9 +23,12 @@ beforeEach(() => {
 describe("index.js error handler", () => {
     test("passes the full error object to core.setFailed, not just error.message", async () => {
         const error = new Error("something broke");
-        run.mockRejectedValue(error);
+        mockRun.mockRejectedValue(error);
 
-        // index.js runs an async IIFE on require; re-run it by calling the pattern directly
+        // Replicate the index.js top-level try/catch pattern
+        const core = await import("@actions/core");
+        const { run } = await import("./lib.js");
+
         const handler = async () => {
             try {
                 await run();

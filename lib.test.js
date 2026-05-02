@@ -1,22 +1,39 @@
-const crypto = require("crypto");
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
+import { jest, describe, test, expect, beforeEach, afterEach } from "@jest/globals";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
 
-// Mock @actions/* packages before requiring lib
-jest.mock("@actions/core");
-jest.mock("@actions/cache");
-jest.mock("@actions/tool-cache");
-jest.mock("@actions/exec");
-jest.mock("@actions/io");
+// Mock @actions/* packages before importing lib
+jest.unstable_mockModule("@actions/core", () => ({
+    getInput: jest.fn().mockReturnValue(""),
+    info: jest.fn(),
+    warning: jest.fn(),
+    setFailed: jest.fn(),
+    setOutput: jest.fn(),
+}));
+jest.unstable_mockModule("@actions/cache", () => ({
+    restoreCache: jest.fn().mockResolvedValue(undefined),
+    saveCache: jest.fn().mockResolvedValue(0),
+}));
+jest.unstable_mockModule("@actions/tool-cache", () => ({
+    downloadTool: jest.fn(),
+}));
+jest.unstable_mockModule("@actions/exec", () => ({
+    exec: jest.fn(),
+}));
+jest.unstable_mockModule("@actions/io", () => ({
+    which: jest.fn(),
+    cp: jest.fn(),
+    mkdirP: jest.fn().mockResolvedValue(),
+}));
 
-const core = require("@actions/core");
-const cache = require("@actions/cache");
-const tc = require("@actions/tool-cache");
-const exec = require("@actions/exec");
-const io = require("@actions/io");
-
-const lib = require("./lib");
+const core = await import("@actions/core");
+const cache = await import("@actions/cache");
+const tc = await import("@actions/tool-cache");
+const exec = await import("@actions/exec");
+const io = await import("@actions/io");
+const lib = await import("./lib.js");
 
 let readFileSyncSpy;
 beforeEach(() => {
@@ -1423,10 +1440,13 @@ describe("do_exec mutation", () => {
 
 describe("do_exec retry", () => {
     // Stub out the real setTimeout-based sleep so tests don't actually wait.
+    // We spy on _internal.sleep_ms (not the exported _sleep_ms) because ESM
+    // exports are bound at module level — spying on the export wouldn't
+    // intercept calls from within the module.
     let sleep_spy;
     beforeEach(() => {
         sleep_spy = jest
-            .spyOn(lib, "_sleep_ms")
+            .spyOn(lib._internal, "sleep_ms")
             .mockImplementation(() => Promise.resolve());
         jest.spyOn(os, "platform").mockReturnValue("linux");
     });
@@ -1463,7 +1483,7 @@ describe("do_exec retry", () => {
             expect.stringContaining("attempt 1/3")
         );
         // Linear backoff on first retry: retry-wait * 1 = 20s
-        expect(lib._sleep_ms).toHaveBeenCalledWith(20 * 1000);
+        expect(lib._internal.sleep_ms).toHaveBeenCalledWith(20 * 1000);
     });
 
     test("gives up after max attempts and rethrows last error", async () => {
@@ -1477,8 +1497,8 @@ describe("do_exec retry", () => {
         // retries=2 -> 3 total attempts
         expect(exec.exec).toHaveBeenCalledTimes(3);
         // Linear backoff: 5s then 10s
-        expect(lib._sleep_ms).toHaveBeenNthCalledWith(1, 5 * 1000);
-        expect(lib._sleep_ms).toHaveBeenNthCalledWith(2, 10 * 1000);
+        expect(lib._internal.sleep_ms).toHaveBeenNthCalledWith(1, 5 * 1000);
+        expect(lib._internal.sleep_ms).toHaveBeenNthCalledWith(2, 10 * 1000);
     });
 
     test("retries=0 disables retry loop", async () => {
@@ -1488,7 +1508,7 @@ describe("do_exec retry", () => {
         await expect(lib.do_exec(["cpm", "install"])).rejects.toThrow("boom");
 
         expect(exec.exec).toHaveBeenCalledTimes(1);
-        expect(lib._sleep_ms).not.toHaveBeenCalled();
+        expect(lib._internal.sleep_ms).not.toHaveBeenCalled();
     });
 
     test("defaults: retries=2 when input is empty", async () => {
@@ -1521,9 +1541,9 @@ describe("do_exec retry", () => {
         await expect(lib.do_exec(["cpm", "install"])).rejects.toThrow("fail");
 
         // attempt 1: min(200*1, 300) = 200s
-        expect(lib._sleep_ms).toHaveBeenNthCalledWith(1, 200 * 1000);
+        expect(lib._internal.sleep_ms).toHaveBeenNthCalledWith(1, 200 * 1000);
         // attempt 2: min(200*2, 300) = 300s (capped)
-        expect(lib._sleep_ms).toHaveBeenNthCalledWith(2, lib.MAX_RETRY_DELAY_S * 1000);
+        expect(lib._internal.sleep_ms).toHaveBeenNthCalledWith(2, lib.MAX_RETRY_DELAY_S * 1000);
     });
 
     test("delay never exceeds MAX_RETRY_DELAY_S even with very high retry-wait", async () => {
@@ -1534,7 +1554,7 @@ describe("do_exec retry", () => {
 
         await lib.do_exec(["cpm", "install"]);
 
-        expect(lib._sleep_ms).toHaveBeenCalledWith(lib.MAX_RETRY_DELAY_S * 1000);
+        expect(lib._internal.sleep_ms).toHaveBeenCalledWith(lib.MAX_RETRY_DELAY_S * 1000);
     });
 
     test("negative retries input falls back to default", async () => {
