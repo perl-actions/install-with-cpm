@@ -1,11 +1,9 @@
-const core = require("@actions/core");
-const { run } = require("./lib");
+import * as core from "@actions/core";
+import { run } from "./lib.js";
 
 // Call run
-(async () => {
-    try {
-        await run();
-    } catch (error) {
-        core.setFailed(error);
-    }
-})();
+try {
+    await run();
+} catch (error) {
+    core.setFailed(error);
+}

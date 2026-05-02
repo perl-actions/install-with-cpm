@@ -1,13 +1,13 @@
-const core = require("@actions/core");
-const cache = require("@actions/cache");
-const tc = require("@actions/tool-cache");
-const exec = require("@actions/exec");
-const io = require("@actions/io");
+import * as core from "@actions/core";
+import * as cache from "@actions/cache";
+import * as tc from "@actions/tool-cache";
+import * as exec from "@actions/exec";
+import * as io from "@actions/io";
 
-const crypto = require("crypto");
-const fs = require("fs");
-const path = require("path");
-const os = require("os");
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import os from "node:os";
 
 async function install_cpm_location(perl) {
     let out = "";
@@ -139,6 +139,12 @@ function split_args(input) {
 
 const VERSION_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
 
+// Mutable sleep reference so tests can replace it without
+// needing CJS module.exports indirection.
+const _internal = {
+    sleep_ms: (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
+};
+
 async function install_cpm(perl, install_to) {
     const version = core.getInput("version");
     const checksum = core.getInput("checksum");
@@ -231,7 +237,7 @@ function _parse_non_negative_int(raw, fallback) {
 }
 
 function _sleep_ms(ms) {
-    return new Promise((resolve) => setTimeout(resolve, ms));
+    return _internal.sleep_ms(ms);
 }
 
 async function do_exec(cmd) {
@@ -265,8 +271,7 @@ async function do_exec(cmd) {
             `cpm attempt ${attempt}/${max_attempts} failed (${err.message || err}); ` +
             `retrying in ${wait_s}s...`
         );
-        // Indirect through module.exports so tests can stub the sleep.
-        await module.exports._sleep_ms(wait_s * 1000);
+        await _sleep_ms(wait_s * 1000);
     }
 }
 
@@ -398,7 +403,7 @@ async function run() {
     }
 }
 
-module.exports = {
+export {
     is_true,
     do_exec,
     which_perl,
@@ -413,6 +418,7 @@ module.exports = {
     MAX_RETRY_DELAY_S,
     _parse_non_negative_int,
     _sleep_ms,
+    _internal,
     compute_sha256,
     verify_checksum,
 };
