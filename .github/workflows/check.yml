@@ -19,11 +19,30 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: uses install-with-cpm
+        id: cpm
         uses: ./
       - name: which cpm
         run: |
           which cpm
           cpm --version
+      - name: verify outputs
+        run: |
+          echo "cpm-path=${{ steps.cpm.outputs.cpm-path }}"
+          echo "cache-hit=${{ steps.cpm.outputs.cache-hit }}"
+          # cpm-path must be a non-empty absolute path
+          if [ -z "${{ steps.cpm.outputs.cpm-path }}" ]; then
+            echo "::error::cpm-path output is empty"
+            exit 1
+          fi
+          if [ ! -f "${{ steps.cpm.outputs.cpm-path }}" ]; then
+            echo "::error::cpm-path does not point to an existing file: ${{ steps.cpm.outputs.cpm-path }}"
+            exit 1
+          fi
+          # cache-hit must be "true" or "false"
+          case "${{ steps.cpm.outputs.cache-hit }}" in
+            true|false) ;;
+            *) echo "::error::cache-hit output must be 'true' or 'false', got: '${{ steps.cpm.outputs.cache-hit }}'"; exit 1 ;;
+          esac
 
   cpm_version:
     runs-on: ubuntu-latest
