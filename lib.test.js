@@ -18,6 +18,22 @@ const io = require("@actions/io");
 
 const lib = require("./lib");
 
+// Probe-aware exec.exec mock: tests that call install_cpm now also trigger
+// resolve_cpm_version → perl_supports_modern_cpm, which runs `perl -e 'print 0+$]'`.
+// This helper returns a mockImplementation that satisfies that probe and
+// falls through to a no-op (return 0) for everything else.
+function probeAwareExecMock(perlVersion = "5.030000") {
+    return async (bin, args, options) => {
+        if (args && args.length === 2 && args[0] === "-e" && args[1] === "print 0+$]") {
+            if (options && options.listeners && options.listeners.stdout) {
+                options.listeners.stdout(Buffer.from(perlVersion));
+            }
+            return 0;
+        }
+        return 0;
+    };
+}
+
 let readFileSyncSpy;
 beforeEach(() => {
     jest.clearAllMocks();
@@ -180,7 +196,7 @@ describe("install_cpm", () => {
             return "";
         });
         tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
-        exec.exec.mockResolvedValue(0);
+        exec.exec.mockImplementation(probeAwareExecMock());
         jest.spyOn(os, "platform").mockReturnValue("linux");
 
         const result = await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
@@ -199,7 +215,7 @@ describe("install_cpm", () => {
             return "";
         });
         tc.downloadTool.mockResolvedValue('/tmp/cpm "$pecial');
-        exec.exec.mockResolvedValue(0);
+        exec.exec.mockImplementation(probeAwareExecMock());
         jest.spyOn(os, "platform").mockReturnValue("linux");
 
         await lib.install_cpm("/usr/bin/perl", '/usr/local/bin/"cpm');
@@ -226,6 +242,7 @@ describe("install_cpm", () => {
         });
         tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
         io.cp.mockResolvedValue();
+        exec.exec.mockImplementation(probeAwareExecMock());
         jest.spyOn(os, "platform").mockReturnValue("win32");
 
         const result = await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
@@ -244,6 +261,13 @@ describe("run", () => {
         io.which.mockResolvedValue("/usr/bin/perl");
         tc.downloadTool.mockResolvedValue("/tmp/cpm-script");
         exec.exec.mockImplementation(async (bin, args, options) => {
+            // resolve_cpm_version probe: feed back a modern-Perl version
+            if (args && args.length === 2 && args[0] === "-e" && args[1] === "print 0+$]") {
+                if (options && options.listeners && options.listeners.stdout) {
+                    options.listeners.stdout(Buffer.from("5.030000"));
+                }
+                return 0;
+            }
             // Simulate install_cpm_location stdout
             if (
                 args &&
@@ -1264,7 +1288,7 @@ describe("install_cpm version validation", () => {
             return "";
         });
         tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
-        exec.exec.mockResolvedValue(0);
+        exec.exec.mockImplementation(probeAwareExecMock());
         jest.spyOn(os, "platform").mockReturnValue("linux");
 
         await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
@@ -1696,6 +1720,103 @@ describe("perl_supports_modern_cpm", () => {
     });
 });
 
+describe("resolve_cpm_version", () => {
+    function mockPerlVersion(output) {
+        exec.exec.mockImplementation(async (bin, args, options) => {
+            if (options && options.listeners && options.listeners.stdout) {
+                options.listeners.stdout(Buffer.from(output));
+            }
+            return 0;
+        });
+    }
+
+    test("returns 'main' on modern Perl with default version and no checksum", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "checksum") return "";
+            return "";
+        });
+        mockPerlVersion("5.030000");
+
+        await expect(
+            lib.resolve_cpm_version("/usr/bin/perl")
+        ).resolves.toBe("main");
+    });
+
+    test("returns LEGACY_PERL_CPM_VERSION on old Perl with default version and no checksum", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "checksum") return "";
+            return "";
+        });
+        mockPerlVersion("5.020003");
+
+        await expect(
+            lib.resolve_cpm_version("/usr/bin/perl")
+        ).resolves.toBe(lib.LEGACY_PERL_CPM_VERSION);
+        expect(lib.LEGACY_PERL_CPM_VERSION).toBe("0.998003");
+    });
+
+    test("returns user version when version is non-default, even on old Perl (probe NOT invoked)", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "0.997014";
+            if (name === "checksum") return "";
+            return "";
+        });
+
+        await expect(
+            lib.resolve_cpm_version("/usr/bin/perl")
+        ).resolves.toBe("0.997014");
+
+        // Probe must not run when version is explicitly pinned
+        expect(exec.exec).not.toHaveBeenCalled();
+    });
+
+    test("returns 'main' when checksum is set, even on old Perl (probe NOT invoked)", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "checksum") return "a".repeat(64);
+            return "";
+        });
+
+        await expect(
+            lib.resolve_cpm_version("/usr/bin/perl")
+        ).resolves.toBe("main");
+
+        // Probe must not run when checksum is set
+        expect(exec.exec).not.toHaveBeenCalled();
+    });
+
+    test("logs an info line when auto-pin fires", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "checksum") return "";
+            return "";
+        });
+        mockPerlVersion("5.020003");
+
+        await lib.resolve_cpm_version("/usr/bin/perl");
+
+        const logs = core.info.mock.calls.map((c) => c[0]).join("\n");
+        expect(logs).toMatch(/perl.*<.*5\.24/i);
+        expect(logs).toContain("0.998003");
+    });
+
+    test("does NOT log auto-pin info when modern Perl is detected", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "checksum") return "";
+            return "";
+        });
+        mockPerlVersion("5.030000");
+
+        await lib.resolve_cpm_version("/usr/bin/perl");
+
+        const logs = core.info.mock.calls.map((c) => c[0]).join("\n");
+        expect(logs).not.toContain("0.998003");
+    });
+});
+
 describe("is_immutable_ref", () => {
     test.each([
         ["0.997014", true],
@@ -1839,7 +1960,7 @@ describe("install_cpm caching", () => {
         });
         cache.restoreCache.mockResolvedValue(undefined);
         tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
-        exec.exec.mockResolvedValue(0);
+        exec.exec.mockImplementation(probeAwareExecMock());
         io.cp.mockResolvedValue();
         io.mkdirP.mockResolvedValue();
 
@@ -1860,7 +1981,7 @@ describe("install_cpm caching", () => {
         });
         cache.restoreCache.mockRejectedValue(new Error("cache unavailable"));
         tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
-        exec.exec.mockResolvedValue(0);
+        exec.exec.mockImplementation(probeAwareExecMock());
         io.cp.mockResolvedValue();
         io.mkdirP.mockResolvedValue();
 
@@ -1879,7 +2000,7 @@ describe("install_cpm caching", () => {
         cache.restoreCache.mockResolvedValue(undefined);
         tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
         cache.saveCache.mockRejectedValue(new Error("save failed"));
-        exec.exec.mockResolvedValue(0);
+        exec.exec.mockImplementation(probeAwareExecMock());
         io.cp.mockResolvedValue();
         io.mkdirP.mockResolvedValue();
 
@@ -1957,7 +2078,7 @@ describe("install_cpm checksum integration", () => {
         jest.spyOn(os, "platform").mockReturnValue("linux");
         readFileSyncSpy.mockReturnValue(Buffer.from(SCRIPT_CONTENT));
         tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
-        exec.exec.mockResolvedValue(0);
+        exec.exec.mockImplementation(probeAwareExecMock());
         io.cp.mockResolvedValue();
         io.mkdirP.mockResolvedValue();
     });

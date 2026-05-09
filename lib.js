@@ -145,7 +145,7 @@ function split_args(input) {
 const VERSION_PATTERN = /^[a-zA-Z0-9][a-zA-Z0-9._-]*$/;
 
 async function install_cpm(perl, install_to) {
-    const version = core.getInput("version");
+    const version = await resolve_cpm_version(perl);
     const checksum = core.getInput("checksum");
 
     if (!version || !VERSION_PATTERN.test(version) || version.includes("..")) {
@@ -234,6 +234,28 @@ async function perl_supports_modern_cpm(perl) {
         );
     }
     return version >= 5.024;
+}
+
+async function resolve_cpm_version(perl) {
+    const version = core.getInput("version");
+    const checksum = core.getInput("checksum");
+
+    // Respect any user pin: explicit version or a checksum means "the user
+    // is taking responsibility for compatibility — don't override them."
+    if (version !== "main" || checksum) {
+        return version;
+    }
+
+    if (await perl_supports_modern_cpm(perl)) {
+        return version;
+    }
+
+    core.info(
+        `Detected Perl < 5.24; pinning cpm to ${LEGACY_PERL_CPM_VERSION} ` +
+        `because cpm v0.999.0+ requires Perl v5.24 (Lyon Amendment). ` +
+        `Set 'version' or 'checksum' explicitly to override.`
+    );
+    return LEGACY_PERL_CPM_VERSION;
 }
 
 async function which_perl() {
@@ -438,6 +460,7 @@ module.exports = {
     is_immutable_ref,
     split_args,
     perl_supports_modern_cpm,
+    resolve_cpm_version,
     run,
     // Exposed for testing
     MAX_RETRY_DELAY_S,
