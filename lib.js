@@ -253,7 +253,7 @@ async function resolve_cpm_version(perl) {
     core.info(
         `Detected Perl < 5.24; pinning cpm to ${LEGACY_PERL_CPM_VERSION} ` +
         `because cpm v0.999.0+ requires Perl v5.24 (Lyon Amendment). ` +
-        `Set 'version' or 'checksum' explicitly to override.`
+        `To override, set 'version' to a non-'main' value (any tag, branch, or SHA) or set 'checksum'.`
     );
     return LEGACY_PERL_CPM_VERSION;
 }
