@@ -216,6 +216,7 @@ async function install_cpm(perl, install_to) {
 async function perl_supports_modern_cpm(perl) {
     let out = "";
     const options = {
+        silent: true,
         listeners: {
             stdout: (data) => {
                 out += data.toString();
