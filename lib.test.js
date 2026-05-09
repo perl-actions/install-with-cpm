@@ -1634,6 +1634,68 @@ describe("install_cpm_location path injection safety", () => {
     });
 });
 
+describe("perl_supports_modern_cpm", () => {
+    function mockPerlVersionOutput(output) {
+        exec.exec.mockImplementation(async (bin, args, options) => {
+            if (options && options.listeners && options.listeners.stdout) {
+                options.listeners.stdout(Buffer.from(output));
+            }
+            return 0;
+        });
+    }
+
+    test.each([
+        ["5.024000", true],
+        ["5.030001", true],
+        ["5.040000", true],
+        ["5.024", true],
+    ])("returns true for Perl >= 5.24 (%s)", async (output, expected) => {
+        mockPerlVersionOutput(output);
+        await expect(lib.perl_supports_modern_cpm("/usr/bin/perl")).resolves.toBe(expected);
+    });
+
+    test.each([
+        ["5.022004", false],
+        ["5.020003", false],
+        ["5.016003", false],
+        ["5.008008", false],
+    ])("returns false for Perl < 5.24 (%s)", async (output, expected) => {
+        mockPerlVersionOutput(output);
+        await expect(lib.perl_supports_modern_cpm("/usr/bin/perl")).resolves.toBe(expected);
+    });
+
+    test("invokes perl with the resolved binary path, not the literal 'perl'", async () => {
+        mockPerlVersionOutput("5.030000");
+        await lib.perl_supports_modern_cpm("/custom/path/to/perl");
+        expect(exec.exec).toHaveBeenCalledWith(
+            "/custom/path/to/perl",
+            ["-e", "print 0+$]"],
+            expect.any(Object)
+        );
+    });
+
+    test("throws when stdout is unparseable", async () => {
+        mockPerlVersionOutput("not-a-number");
+        await expect(
+            lib.perl_supports_modern_cpm("/usr/bin/perl")
+        ).rejects.toThrow(/could not parse perl version/i);
+    });
+
+    test("throws when stdout is empty", async () => {
+        mockPerlVersionOutput("");
+        await expect(
+            lib.perl_supports_modern_cpm("/usr/bin/perl")
+        ).rejects.toThrow(/could not parse perl version/i);
+    });
+
+    test("propagates execution failure", async () => {
+        exec.exec.mockRejectedValue(new Error("perl: command not found"));
+        await expect(
+            lib.perl_supports_modern_cpm("/usr/bin/perl")
+        ).rejects.toThrow("perl: command not found");
+    });
+});
+
 describe("is_immutable_ref", () => {
     test.each([
         ["0.997014", true],

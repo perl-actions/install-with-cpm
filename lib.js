@@ -69,6 +69,12 @@ function cpm_cache_dir() {
 
 const MAX_RETRY_DELAY_S = 300;
 
+// Last cpm release that runs on Perl < 5.24.
+// cpm v0.999.0+ requires Perl v5.24 per the Lyon Amendment.
+// If you change this, the new value must satisfy VERSION_PATTERN
+// (see lib.js below) AND be recognized as immutable by is_immutable_ref().
+const LEGACY_PERL_CPM_VERSION = "0.998003";
+
 function compute_sha256(filePath) {
     const content = fs.readFileSync(filePath);
     return crypto.createHash("sha256").update(content).digest("hex");
@@ -205,6 +211,29 @@ async function install_cpm(perl, install_to) {
     }
 
     return { path: install_to, cacheHit };
+}
+
+async function perl_supports_modern_cpm(perl) {
+    let out = "";
+    const options = {
+        listeners: {
+            stdout: (data) => {
+                out += data.toString();
+            },
+        },
+    };
+
+    // Use exec.exec directly — not do_exec — because we don't want sudo
+    // or the cpm retry loop wrapping a tiny in-process version probe.
+    await exec.exec(perl, ["-e", "print 0+$]"], options);
+
+    const version = parseFloat(out);
+    if (Number.isNaN(version)) {
+        throw new Error(
+            `Could not parse perl version from output: ${JSON.stringify(out)}`
+        );
+    }
+    return version >= 5.024;
 }
 
 async function which_perl() {
@@ -408,9 +437,11 @@ module.exports = {
     cpm_cache_dir,
     is_immutable_ref,
     split_args,
+    perl_supports_modern_cpm,
     run,
     // Exposed for testing
     MAX_RETRY_DELAY_S,
+    LEGACY_PERL_CPM_VERSION,
     _parse_non_negative_int,
     _sleep_ms,
     compute_sha256,
