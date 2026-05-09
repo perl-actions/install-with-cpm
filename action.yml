@@ -61,7 +61,11 @@ inputs:
     default: ""
 
   version:
-    description: "Which version to install"
+    description: >
+      Which version of cpm to install. Default 'main' tracks the latest
+      release. On Perl interpreters older than v5.24, the default is
+      automatically replaced by '0.998003' (the last release before cpm
+      raised its minimum to v5.24). Set this input explicitly to override.
     required: false
     default: "main"
 

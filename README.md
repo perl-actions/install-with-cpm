@@ -168,7 +168,15 @@ snapshot: "cpanfile.snapshot"
 
 ### `version`
 
-Which version/tag of `cpm` to install. Default is 'main' to use the latest version.
+Which version/tag of `cpm` to install. Default is `main` to use the latest version.
+
+**Compatibility with Perl < 5.24.** cpm v0.999.0 (March 2026) raised its
+minimum Perl version to v5.24 per the Lyon Amendment. When `version`
+resolves to `main` and `checksum` is empty, this action automatically
+detects the resolved Perl interpreter's version and substitutes the
+legacy pin `0.998003` (the last release that runs on older Perls).
+To opt out, set `version` to a specific cpm release/SHA, or supply a
+`checksum`; either disables the auto-pin entirely.
 
 ### `retries`
 
