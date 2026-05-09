@@ -2013,6 +2013,61 @@ describe("install_cpm caching", () => {
     });
 });
 
+describe("install_cpm legacy-Perl auto-pin", () => {
+    beforeEach(() => {
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+    });
+
+    test("on Perl 5.20 with default version and no checksum: downloads 0.998003 and caches with immutable key", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "checksum") return "";
+            if (name === "sudo") return "false";
+            return "";
+        });
+        cache.restoreCache.mockResolvedValue(undefined);
+        tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
+        io.cp.mockResolvedValue();
+        io.mkdirP.mockResolvedValue();
+        exec.exec.mockImplementation(probeAwareExecMock("5.020003"));
+
+        await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
+
+        expect(tc.downloadTool).toHaveBeenCalledWith(
+            "https://raw.githubusercontent.com/skaji/cpm/0.998003/cpm"
+        );
+        expect(cache.saveCache).toHaveBeenCalledWith(
+            [lib.cpm_cache_dir()],
+            "cpm-script-0.998003-linux"
+        );
+    });
+
+    test("on Perl 5.30 with default version and no checksum: downloads main with mutable cache key", async () => {
+        core.getInput.mockImplementation((name) => {
+            if (name === "version") return "main";
+            if (name === "checksum") return "";
+            if (name === "sudo") return "false";
+            return "";
+        });
+        cache.restoreCache.mockResolvedValue(undefined);
+        tc.downloadTool.mockResolvedValue("/tmp/cpm-downloaded");
+        io.cp.mockResolvedValue();
+        io.mkdirP.mockResolvedValue();
+        exec.exec.mockImplementation(probeAwareExecMock("5.030000"));
+
+        await lib.install_cpm("/usr/bin/perl", "/usr/local/bin/cpm");
+
+        expect(tc.downloadTool).toHaveBeenCalledWith(
+            "https://raw.githubusercontent.com/skaji/cpm/main/cpm"
+        );
+        const today = new Date().toISOString().slice(0, 10);
+        expect(cache.saveCache).toHaveBeenCalledWith(
+            [lib.cpm_cache_dir()],
+            `cpm-script-main-linux-${today}`
+        );
+    });
+});
+
 describe("compute_sha256", () => {
     test("computes correct SHA-256 hex digest", () => {
         const content = "#!/usr/bin/env perl\nprint 'hello cpm';\n";
