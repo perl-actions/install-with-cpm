@@ -52,8 +52,7 @@ function _today_utc() {
     return new Date().toISOString().slice(0, 10);
 }
 
-function cpm_cache_key() {
-    const version = core.getInput("version");
+function cpm_cache_key(version) {
     const base = `cpm-script-${version}-${os.platform()}`;
     if (is_immutable_ref(version)) {
         return base;
@@ -157,7 +156,7 @@ async function install_cpm(perl, install_to) {
 
     const url = `https://raw.githubusercontent.com/skaji/cpm/${version}/cpm`;
 
-    const cacheKey = cpm_cache_key();
+    const cacheKey = cpm_cache_key(version);
     const cacheDir = cpm_cache_dir();
     const cachedScript = path.join(cacheDir, "cpm");
 

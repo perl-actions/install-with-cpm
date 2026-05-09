@@ -1719,44 +1719,29 @@ describe("is_immutable_ref", () => {
 
 describe("cpm_cache_key", () => {
     test("immutable ref (semver tag): plain key, no date suffix", () => {
-        core.getInput.mockImplementation((name) => {
-            if (name === "version") return "0.997014";
-            return "";
-        });
         jest.spyOn(os, "platform").mockReturnValue("linux");
-
-        expect(lib.cpm_cache_key()).toBe("cpm-script-0.997014-linux");
+        expect(lib.cpm_cache_key("0.997014")).toBe("cpm-script-0.997014-linux");
     });
 
     test("immutable ref (commit SHA): plain key, no date suffix", () => {
         const sha = "deadbeefcafebabe1234567890abcdef12345678";
-        core.getInput.mockImplementation((name) => {
-            if (name === "version") return sha;
-            return "";
-        });
         jest.spyOn(os, "platform").mockReturnValue("linux");
+        expect(lib.cpm_cache_key(sha)).toBe(`cpm-script-${sha}-linux`);
+    });
 
-        expect(lib.cpm_cache_key()).toBe(`cpm-script-${sha}-linux`);
+    test("legacy pin (0.998003): plain immutable key, no date suffix", () => {
+        jest.spyOn(os, "platform").mockReturnValue("linux");
+        expect(lib.cpm_cache_key("0.998003")).toBe("cpm-script-0.998003-linux");
     });
 
     test("mutable ref (branch): key gets daily UTC date suffix", () => {
-        core.getInput.mockImplementation((name) => {
-            if (name === "version") return "main";
-            return "";
-        });
         jest.spyOn(os, "platform").mockReturnValue("darwin");
-
         const today = new Date().toISOString().slice(0, 10);
-        expect(lib.cpm_cache_key()).toBe(`cpm-script-main-darwin-${today}`);
+        expect(lib.cpm_cache_key("main")).toBe(`cpm-script-main-darwin-${today}`);
     });
 
     test("mutable ref: key changes when day changes", () => {
-        core.getInput.mockImplementation((name) => {
-            if (name === "version") return "main";
-            return "";
-        });
         jest.spyOn(os, "platform").mockReturnValue("linux");
-
         const realDate = Date;
         try {
             global.Date = class extends realDate {
@@ -1768,7 +1753,7 @@ describe("cpm_cache_key", () => {
                     return new realDate("2026-01-15T10:00:00Z").getTime();
                 }
             };
-            const day1 = lib.cpm_cache_key();
+            const day1 = lib.cpm_cache_key("main");
 
             global.Date = class extends realDate {
                 constructor() {
@@ -1779,7 +1764,7 @@ describe("cpm_cache_key", () => {
                     return new realDate("2026-01-16T10:00:00Z").getTime();
                 }
             };
-            const day2 = lib.cpm_cache_key();
+            const day2 = lib.cpm_cache_key("main");
 
             expect(day1).toBe("cpm-script-main-linux-2026-01-15");
             expect(day2).toBe("cpm-script-main-linux-2026-01-16");
